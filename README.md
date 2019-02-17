@@ -24,19 +24,21 @@ class C(FileProcessing):
 
     def __init__(self, ops):
         super().__init__(ops)
-        self.xx = xxx
+        self.xx = None
         ...
-    
+
     def do_body(self, in_path, out_path):
         """
         overwrite the method
         """
 
-    def XXX():
-        xxx
-    
-    ...
-    
+    def xxx(self):
+        # xxx
+        pass
+
+    # ...
+
+
 if __name__ == '__main__':
     # prepare argument
     parser = argparse.ArgumentParser(description='xxx xxx xxx')
@@ -44,14 +46,15 @@ if __name__ == '__main__':
     parser.add_argument('--output', '-o', help='xxx', default='out', type=str)
     parser.add_argument("--in_format", "-if", type=str, help="define the input format", default="xxx")
     parser.add_argument("--out_format", "-of", type=str, help="define the output format", default="yyy")
-    ...
+    # ...
     args = parser.parse_args()
-    
+
     # do operation
     c = C(args)
     c.do_multiple()
-    ...
+    # ...
 ```
+Modify the `template.py` with your function.
 #### Four Parameters:
 * `input`: input folder to do operation
 * `output`: output folder to export something with the same file system structures
