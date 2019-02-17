@@ -11,12 +11,13 @@ class C(FileProcessing):
     def __init__(self, ops):
         super().__init__(ops)
         self.xx = None
-        ...
+        # ...
 
     def do_body(self, in_path, out_path):
         """
         overwrite the method
         """
+        pass
 
     def xxx(self):
         # xxx
