@@ -2,6 +2,7 @@
 ## Introduction
 This default process is to recursively find the targeted file with given input format, and do operation to the new output path with output format.
 
+The class will do everything for you in behind with parallel computing power.
 ## Usage
 ### Import Function
 Import function first with:
@@ -37,6 +38,7 @@ class C(FileProcessing):
     ...
     
 if __name__ == '__main__':
+    # prepare argument
     parser = argparse.ArgumentParser(description='xxx xxx xxx')
     parser.add_argument('--input', '-i', help='xxx', default='in', type=str)
     parser.add_argument('--output', '-o', help='xxx', default='out', type=str)
@@ -45,7 +47,9 @@ if __name__ == '__main__':
     ...
     args = parser.parse_args()
     
+    # do operation
     c = C(args)
+    c.do_multiple()
     ...
 ```
 #### Four Parameters:
@@ -56,6 +60,6 @@ if __name__ == '__main__':
 #### Overwrite Function
 Function `do_body`:
 Consider parameters `in_path` and `out_path` are just one file data flow, from the source to the target.
-
-The function will do everything for you in behind with cpu parallel computing power.
+#### Do operation
+Do operation just write `do_multiple` function.
 
