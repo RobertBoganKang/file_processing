@@ -17,7 +17,7 @@ import argparse
 from file_processing import FileProcessing
 
 
-class C(FileProcessing):
+class Template(FileProcessing):
     """
     xxx xxx xxx xxx
     """
@@ -51,8 +51,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # do operation
-    c = C(args)
-    c.do_multiple()
+    t = Template(args)
+    t.do_multiple()
     # ...
 ```
 Modify the `template.py` with your function.
