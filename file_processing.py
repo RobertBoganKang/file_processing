@@ -18,11 +18,24 @@ class FileProcessing(object):
         self.in_format = ops.in_format
         # output format
         self.out_format = ops.out_format
+        # cpu number
+        self.cpu = ops.cpu_number
 
-    ##########################################
-    # this section is default batch process  #
-    # set above with self.input, self.output #
-    ##########################################
+    #########################################
+    # this section is default batch process #
+    # set all above parameters in argparse  #
+    #########################################
+
+    def cpu_count(self):
+        """
+        get the cpu number
+        :return: int; valid cpu number
+        """
+        cpu_count = self.cpu
+        max_cpu = multiprocessing.cpu_count()
+        if cpu_count == 0 or cpu_count > max_cpu:
+            cpu_count = max_cpu
+        return cpu_count
 
     def remove_empty_folder(self):
         """
@@ -45,7 +58,7 @@ class FileProcessing(object):
         """
         # find all patterns
         fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
-        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        pool = multiprocessing.Pool(self.cpu_count())
         pool.map(self.do_multiple_helper, fs)
         self.remove_empty_folder()
 

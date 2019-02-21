@@ -31,8 +31,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='xxx xxx xxx')
     parser.add_argument('--input', '-i', help='xxx', default='in', type=str)
     parser.add_argument('--output', '-o', help='xxx', default='out', type=str)
-    parser.add_argument("--in_format", "-if", type=str, help="define the input format", default="xxx")
-    parser.add_argument("--out_format", "-of", type=str, help="define the output format", default="yyy")
+    parser.add_argument('--in_format', '-if', type=str, help='define the input format', default='xxx')
+    parser.add_argument('--out_format', '-of', type=str, help='define the output format', default='yyy')
+    parser.add_argument('--cpu_number', '-j', type=int, help='cpu number of processing', default=0)
     # ...
     args = parser.parse_args()
 
