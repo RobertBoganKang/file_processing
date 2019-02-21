@@ -10,7 +10,9 @@ Import function first with:
 from file_processing import FileProcessing
 ```
 ### Codewise Operation
-Then, inherit the class, and pass four parameters through `argparse` into the class:
+Then, inherit the class, and pass several parameters through `argparse` into the class.
+
+The `template.py` file can be refered.
 ```python
 import argparse
 
@@ -57,11 +59,12 @@ if __name__ == '__main__':
     # ...
 ```
 Modify the `template.py` with your function.
-#### Four Parameters:
+#### Several Parameters:
 * `input`: input folder to do operation
 * `output`: output folder to export something with the same file system structures
 * `in_format`: format to search to do operation
 * `out_format`: the export file format
+* `cpu_number`: the number of cpu to process
 #### Overwrite Function
 Function `do_body`:
 Consider parameters `in_path` and `out_path` are just one file data flow, from the source to the target.
