@@ -50,6 +50,9 @@ class FileProcessing(object):
         for folder in fs:
             if len(os.listdir(folder)) == 0:
                 shutil.rmtree(folder)
+        # test if the output folder is empty
+        if len(os.listdir(self.output)) == 0:
+            shutil.rmtree(self.output)
 
     def do_multiple(self):
         """
@@ -71,8 +74,8 @@ class FileProcessing(object):
         # prepare output path
         truncated_path = os.path.split(in_path)[0][len(self.input) + 1:]
         out_folder = os.path.join(self.output, truncated_path)
-        if not os.path.exists(out_folder):
-            print('[{}] has been created successfully ~'.format(out_folder))
+        # if not os.path.exists(out_folder):
+        #     print('[{}] has been created successfully ~'.format(out_folder))
         os.makedirs(out_folder, exist_ok=True)
         # do operation
         self.do_single(in_path, out_folder)
