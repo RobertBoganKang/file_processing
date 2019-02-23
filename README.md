@@ -67,6 +67,8 @@ if __name__ == '__main__':
     # ...
 ```
 Modify the `template.py` with your function.
+
+If `output` or `out_format` is `None`, it is consider to be target folder operation, else the data is from `input` to `output`.
 #### Several Parameters:
 * `input`: input folder to do operation
 * `output`: output folder to export something with the same file system structures
