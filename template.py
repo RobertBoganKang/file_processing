@@ -35,6 +35,8 @@ class Template(FileProcessing):
 
 
 if __name__ == '__main__':
+    # set working directory
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     # prepare argument
     parser = argparse.ArgumentParser(description='xxx xxx xxx')
     parser.add_argument('--input', '-i', help='xxx', default='in', type=str)
