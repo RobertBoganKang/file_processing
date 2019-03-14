@@ -66,10 +66,11 @@ class FileProcessing(object):
         fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
         pool = multiprocessing.Pool(self.cpu_count())
         pool.map(self.do_multiple_helper, fs)
-        if self.single_mode:
-            self.remove_empty_folder(self.input)
-        else:
-            self.remove_empty_folder(self.output)
+        if os.path.exists(self.output):
+            if self.single_mode:
+                self.remove_empty_folder(self.input)
+            else:
+                self.remove_empty_folder(self.output)
 
     def do_multiple_helper(self, in_path):
         """
