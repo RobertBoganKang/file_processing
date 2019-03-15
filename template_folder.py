@@ -1,10 +1,10 @@
 import argparse
 
 # https://github.com/RobertBoganKang/FileProcessing
-from file_processing import FileProcessing
+from file_processing import FolderProcessing
 
 
-class Template(FileProcessing):
+class Template(FolderProcessing):
     """
     xxx xxx xxx xxx
     """
@@ -14,15 +14,15 @@ class Template(FileProcessing):
         self.xx = None
         # ...
 
-    # in_path --> out_path; data flow
-    def do_body(self, in_path, out_path):
+    # in_folder --> out_folder; data flow
+    def do_body(self, in_folder, out_folder):
         """
         overwrite the method
         """
         pass
 
     # target path operation
-    # def do_body(self, target_path):
+    # def do_body(self, target_folder):
     #    """
     #    overwrite the method
     #    """
@@ -41,8 +41,6 @@ if __name__ == '__main__':
     parser.add_argument('--input', '-i', help='xxx', default='in', type=str)
     parser.add_argument('--output', '-o', help='xxx', default=None, type=str)
     parser.add_argument('--cpu_number', '-j', type=int, help='cpu number of processing', default=0)
-    parser.add_argument('--in_format', '-if', type=str, help='define the input format', default='xxx')
-    parser.add_argument('--out_format', '-of', type=str, help='define the output format', default=None)
     # ...
     args = parser.parse_args()
 
