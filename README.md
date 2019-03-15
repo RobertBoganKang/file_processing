@@ -16,6 +16,7 @@ The `template.py` file can be refered.
 ```python
 import argparse
 
+# https://github.com/RobertBoganKang/FileProcessing
 from file_processing import FileProcessing
 
 
@@ -56,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('--input', '-i', help='xxx', default='in', type=str)
     parser.add_argument('--output', '-o', help='xxx', default='None', type=str)
     parser.add_argument('--in_format', '-if', type=str, help='define the input format', default='xxx')
-    parser.add_argument('--out_format', '-of', type=str, help='define the output format', default='None')
+    parser.add_argument('--out_format', '-of', type=str, help='define the output format', default=None)
     parser.add_argument('--cpu_number', '-j', type=int, help='cpu number of processing', default=0)
     # ...
     args = parser.parse_args()
@@ -65,6 +66,7 @@ if __name__ == '__main__':
     t = Template(args)
     t.do_multiple()
     # ...
+
 ```
 Modify the `template.py` with your function.
 
