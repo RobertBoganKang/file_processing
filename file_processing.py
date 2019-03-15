@@ -22,6 +22,10 @@ class FileProcessing(object):
         self.cpu = ops.cpu_number
         # test mode: True: 1, False: 2 data flow
         self.single_mode = self.output is None or self.out_format is None
+        # pattern identifier
+        self.pattern_identifier = '!!'
+        # is pattern
+        self.is_pattern = self.pattern_identifier in self.in_format
 
     #########################################
     # this section is default batch process #
@@ -63,7 +67,12 @@ class FileProcessing(object):
         :return: None
         """
         # find all patterns
-        fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
+        if self.is_pattern:
+            # if contains `pattern_identifier`, it is considered to be patterns
+            fs = glob.glob(os.path.join(self.input, '**/' + self.in_format.replace(self.pattern_identifier, '')), recursive=True)
+        else:
+            fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
+        print(fs)
         pool = multiprocessing.Pool(self.cpu_count())
         pool.map(self.do_multiple_helper, fs)
         if self.single_mode:
@@ -97,8 +106,13 @@ class FileProcessing(object):
         # out_folder: str; output folder
         if not self.single_mode:
             in_path, out_folder = args[0], args[1]
-            out_name = os.path.split(in_path)[1][:-len(self.in_format)]
-            out_path = os.path.join(out_folder, out_name) + self.out_format
+            out_name = os.path.split(in_path)[1]
+            if not self.is_pattern:
+                # if not pattern, truncated the format and add a new one
+                out_name = out_name[:-len(self.in_format)]
+            out_path = os.path.join(out_folder, out_name)
+            if not self.is_pattern:
+                out_path += self.out_format
             # the 'do_body' function is main function for batch process
             self.do_body(in_path, out_path)
         else:
@@ -111,6 +125,6 @@ class FileProcessing(object):
 
     def do_body(self, *args):
         """
-        do function will be implemented
+        do function will be implemented on files
         """
         pass
