@@ -4,7 +4,102 @@ import os
 import shutil
 
 
-class FileProcessing(object):
+class CommonUtils(object):
+    """common tools for classes"""
+    @staticmethod
+    def cpu_count(cpu_count):
+        """
+        get the cpu number
+        :return: int; valid cpu number
+        """
+        max_cpu = multiprocessing.cpu_count()
+        if cpu_count == 0 or cpu_count > max_cpu:
+            cpu_count = max_cpu
+        return cpu_count
+
+    @staticmethod
+    def remove_empty_folder(target_folder):
+        """
+        target folder may empty, then remove it
+        :return: None
+        """
+        # find all patterns
+        fs = glob.glob(os.path.join(target_folder, '**/*'), recursive=True)
+        # select folders
+        fs = [x for x in fs if os.path.isdir(x)]
+        # test folder
+        for folder in fs:
+            if len(os.listdir(folder)) == 0:
+                shutil.rmtree(folder)
+        # test if the output folder is empty
+        if os.path.exists(target_folder) and len(os.listdir(target_folder)) == 0:
+            shutil.rmtree(target_folder)
+
+
+class FolderProcessing(CommonUtils):
+    """
+    recursively find folder of processing
+    """
+
+    def __init__(self, ops):
+        # input folder
+        self.input = os.path.abspath(ops.input)
+        # output folder
+        self.output = os.path.abspath(ops.output)
+        # cpu number
+        self.cpu = ops.cpu_number
+        # test mode: True: 1, False: 2 data flow
+        self.single_mode = self.output is None
+
+    #########################################
+    # this section is default batch process #
+    # set all above parameters in argparse  #
+    #########################################
+
+    def do_multiple(self):
+        """
+        parallel processing on folders in file system
+        :return: None
+        """
+        # find all patterns
+        fs = glob.glob(os.path.join(self.input, '**/*'), recursive=True)
+        fs = [x for x in fs if os.path.isdir(x)]
+        pool = multiprocessing.Pool(self.cpu_count(self.cpu))
+        pool.map(self.do_multiple_helper, fs)
+        if self.single_mode:
+            self.remove_empty_folder(self.input)
+        else:
+            self.remove_empty_folder(self.output)
+
+    def do_multiple_helper(self, in_folder):
+        """
+        prepare function for multiprocessing mapping
+        :param in_folder: str; folder path to process
+        :return: None
+        """
+        if not self.single_mode:
+            # prepare output path
+            truncated_path = os.path.split(in_folder)[0][len(self.input) + 1:]
+            out_folder = os.path.join(self.output, truncated_path)
+            # make directories
+            os.makedirs(out_folder, exist_ok=True)
+            # do operation
+            self.do_body(in_folder, out_folder)
+        else:
+            self.do_body(in_folder)
+
+    #######
+    # end #
+    #######
+
+    def do_body(self, *args):
+        """
+        do function will be implemented on files
+        """
+        pass
+
+
+class FileProcessing(CommonUtils):
     """
     recursively find file of processing
     """
@@ -32,35 +127,6 @@ class FileProcessing(object):
     # set all above parameters in argparse  #
     #########################################
 
-    def cpu_count(self):
-        """
-        get the cpu number
-        :return: int; valid cpu number
-        """
-        cpu_count = self.cpu
-        max_cpu = multiprocessing.cpu_count()
-        if cpu_count == 0 or cpu_count > max_cpu:
-            cpu_count = max_cpu
-        return cpu_count
-
-    @staticmethod
-    def remove_empty_folder(target_folder):
-        """
-        target folder may empty, then remove it
-        :return: None
-        """
-        # find all patterns
-        fs = glob.glob(os.path.join(target_folder, '**/*'), recursive=True)
-        # select folders
-        fs = [x for x in fs if os.path.isdir(x)]
-        # test folder
-        for folder in fs:
-            if len(os.listdir(folder)) == 0:
-                shutil.rmtree(folder)
-        # test if the output folder is empty
-        if os.path.exists(target_folder) and len(os.listdir(target_folder)) == 0:
-            shutil.rmtree(target_folder)
-
     def do_multiple(self):
         """
         parallel processing on files in file system
@@ -69,11 +135,11 @@ class FileProcessing(object):
         # find all patterns
         if self.is_pattern:
             # if contains `pattern_identifier`, it is considered to be patterns
-            fs = glob.glob(os.path.join(self.input, '**/' + self.in_format.replace(self.pattern_identifier, '')), recursive=True)
+            fs = glob.glob(os.path.join(self.input, '**/' + self.in_format.replace(self.pattern_identifier, '')),
+                           recursive=True)
         else:
             fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
-        print(fs)
-        pool = multiprocessing.Pool(self.cpu_count())
+        pool = multiprocessing.Pool(self.cpu_count(self.cpu))
         pool.map(self.do_multiple_helper, fs)
         if self.single_mode:
             self.remove_empty_folder(self.input)
