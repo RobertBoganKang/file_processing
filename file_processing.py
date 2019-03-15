@@ -2,7 +2,6 @@ import glob
 import multiprocessing
 import os
 import shutil
-import subprocess
 
 
 class CommonUtils(object):
