@@ -54,7 +54,7 @@ class FileProcessing(object):
             if len(os.listdir(folder)) == 0:
                 shutil.rmtree(folder)
         # test if the output folder is empty
-        if len(os.listdir(target_folder)) == 0:
+        if os.path.exists(target_folder) and len(os.listdir(target_folder)) == 0:
             shutil.rmtree(target_folder)
 
     def do_multiple(self):
