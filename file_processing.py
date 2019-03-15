@@ -2,6 +2,7 @@ import glob
 import multiprocessing
 import os
 import shutil
+import subprocess
 
 
 class CommonUtils(object):
@@ -28,9 +29,12 @@ class CommonUtils(object):
         fs = glob.glob(os.path.join(target_folder, '**/*'), recursive=True)
         # select folders
         fs = [x for x in fs if os.path.isdir(x)]
+        fs.sort()
+        fs.reverse()
         # test folder
         for folder in fs:
             if len(os.listdir(folder)) == 0:
+                print(folder)
                 shutil.rmtree(folder)
         # test if the output folder is empty
         if os.path.exists(target_folder) and len(os.listdir(target_folder)) == 0:
