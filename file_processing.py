@@ -6,6 +6,7 @@ import shutil
 
 class CommonUtils(object):
     """common tools for classes"""
+
     @staticmethod
     def cpu_count(cpu_count):
         """
@@ -79,7 +80,7 @@ class FolderProcessing(CommonUtils):
         """
         if not self.single_mode:
             # prepare output path
-            truncated_path = os.path.split(in_folder)[0][len(self.input) + 1:]
+            truncated_path = in_folder[len(self.input) + 1:]
             out_folder = os.path.join(self.output, truncated_path)
             # make directories
             os.makedirs(out_folder, exist_ok=True)
@@ -94,7 +95,7 @@ class FolderProcessing(CommonUtils):
 
     def do_body(self, *args):
         """
-        do function will be implemented on files
+        do function will be implemented on folders
         """
         pass
 
