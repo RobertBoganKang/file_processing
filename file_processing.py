@@ -112,7 +112,7 @@ class FileProcessing(CommonUtils):
         # input folder
         self.input = os.path.abspath(ops.input)
         # output folder
-        self.output = os.path.abspath(ops.output)
+        self.output = [os.path.abspath(ops.output) if ops.output is not None else None][0]
         # input format
         self.in_format = ops.in_format
         # output format
@@ -122,7 +122,7 @@ class FileProcessing(CommonUtils):
         # test mode: True: 1, False: 2 data flow
         self.single_mode = self.output is None or self.out_format is None
         # pattern identifier
-        self.pattern_identifier = '!!'
+        self.pattern_identifier = '\\'
         # is pattern
         self.is_pattern = self.pattern_identifier in self.in_format
 
@@ -143,6 +143,8 @@ class FileProcessing(CommonUtils):
                            recursive=True)
         else:
             fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
+        fs = [x for x in fs if os.path.isfile(x)]
+
         pool = multiprocessing.Pool(self.cpu_count(self.cpu))
         pool.map(self.do_multiple_helper, fs)
         if self.single_mode:
@@ -180,9 +182,9 @@ class FileProcessing(CommonUtils):
             if not self.is_pattern:
                 # if not pattern, truncated the format and add a new one
                 out_name = out_name[:-len(self.in_format)]
-            out_path = os.path.join(out_folder, out_name)
-            if not self.is_pattern:
-                out_path += self.out_format
+                out_path = os.path.join(out_folder, out_name) + self.out_format
+            else:
+                out_path = os.path.join(out_folder, out_name)
             # the 'do_body' function is main function for batch process
             self.do_body(in_path, out_path)
         else:
