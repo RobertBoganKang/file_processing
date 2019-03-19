@@ -46,12 +46,21 @@ class FolderProcessing(CommonUtils):
     """
 
     def __init__(self, ops):
-        # input folder
-        self.input = os.path.abspath(ops.input)
-        # output folder
-        self.output = os.path.abspath(ops.output)
-        # cpu number
-        self.cpu = ops.cpu_number
+        if isinstance(ops, dict):
+            # input folder
+            self.input = os.path.abspath(ops['input'])
+            # output folder
+            self.output = os.path.abspath(ops['output'])
+            # cpu number
+            self.cpu = ops['cpu_number']
+        else:
+            # input folder
+            self.input = os.path.abspath(ops.input)
+            # output folder
+            self.output = os.path.abspath(ops.output)
+            # cpu number
+            self.cpu = ops.cpu_number
+
         # test mode: True: 1, False: 2 data flow
         self.single_mode = self.output is None
 
@@ -109,16 +118,29 @@ class FileProcessing(CommonUtils):
     """
 
     def __init__(self, ops):
-        # input folder
-        self.input = os.path.abspath(ops.input)
-        # output folder
-        self.output = [os.path.abspath(ops.output) if ops.output is not None else None][0]
-        # input format
-        self.in_format = ops.in_format
-        # output format
-        self.out_format = ops.out_format
-        # cpu number
-        self.cpu = ops.cpu_number
+        if isinstance(ops, dict):
+            # input folder
+            self.input = os.path.abspath(ops['input'])
+            # output folder
+            self.output = [os.path.abspath(ops['output']) if ops['output'] is not None else None][0]
+            # input format
+            self.in_format = ops['in_format']
+            # output format
+            self.out_format = ops['out_format']
+            # cpu number
+            self.cpu = ops['cpu_number']
+        else:
+            # input folder
+            self.input = os.path.abspath(ops.input)
+            # output folder
+            self.output = [os.path.abspath(ops.output) if ops.output is not None else None][0]
+            # input format
+            self.in_format = ops.in_format
+            # output format
+            self.out_format = ops.out_format
+            # cpu number
+            self.cpu = ops.cpu_number
+
         # test mode: True: 1, False: 2 data flow
         self.single_mode = self.output is None or self.out_format is None
         # pattern identifier
