@@ -46,6 +46,14 @@ if __name__ == '__main__':
     # ...
     args = parser.parse_args()
 
+    # or use api
+    # args = {}
+    # args['input'] = 'in'
+    # args['output'] = 'out'
+    # args['cpu_number'] = 0
+    # args['in_format'] = 'xxx'
+    # args['out_format'] = None
+
     # do operation
     t = Template(args)
     t.do_multiple()
