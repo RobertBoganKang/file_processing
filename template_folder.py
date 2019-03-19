@@ -45,10 +45,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # or use api
-    # args = {}
-    # args['input'] = 'in'
-    # args['output'] = 'out'
-    # args['cpu_number'] = 0
+    # args = {
+    #     'input': 'in',
+    #     'output': 'out',
+    #     'cpu_number': 0
+    # }
 
     # do operation
     t = Template(args)
