@@ -77,8 +77,12 @@ class FolderProcessing(CommonUtils):
         # find all patterns
         fs = glob.glob(os.path.join(self.input, '**/*'), recursive=True)
         fs = [x for x in fs if os.path.isdir(x)]
-        pool = multiprocessing.Pool(self.cpu_count(self.cpu))
-        pool.map(self.do_multiple_helper, fs)
+        if self.cpu != 1:
+            pool = multiprocessing.Pool(self.cpu_count(self.cpu))
+            pool.map(self.do_multiple_helper, fs)
+        else:
+            for in_folder in fs:
+                self.do_multiple_helper(in_folder)
         if self.single_mode:
             self.remove_empty_folder(self.input)
         else:
@@ -166,9 +170,12 @@ class FileProcessing(CommonUtils):
         else:
             fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
         fs = [x for x in fs if os.path.isfile(x)]
-
-        pool = multiprocessing.Pool(self.cpu_count(self.cpu))
-        pool.map(self.do_multiple_helper, fs)
+        if self.cpu != 1:
+            pool = multiprocessing.Pool(self.cpu_count(self.cpu))
+            pool.map(self.do_multiple_helper, fs)
+        else:
+            for in_folder in fs:
+                self.do_multiple_helper(in_folder)
         if self.single_mode:
             self.remove_empty_folder(self.input)
         else:
