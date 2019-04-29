@@ -15,14 +15,14 @@ class Template(FileProcessing):
         # ...
 
     # in_path --> out_path; data flow
-    def do_body(self, in_path, out_path):
+    def do(self, in_path, out_path):
         """
         overwrite the method
         """
         pass
 
     # target path operation
-    # def do_body(self, target_path):
+    # def do(self, target_path):
     #    """
     #    overwrite the method
     #    """
@@ -56,6 +56,5 @@ if __name__ == '__main__':
     # }
 
     # do operation
-    t = Template(args)
-    t.do_multiple()
+    Template(args)()
     # ...

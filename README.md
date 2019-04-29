@@ -20,8 +20,8 @@ If `output` or `out_format` is `None`, it is consider to be target folder operat
 * `out_format`: the export file format (for file processing)
 * `cpu_number`: the number of cpu to process
 #### Overwrite Function
-Function `do_body`:
+Function `do`:
 Consider parameters `in_path` and `out_path` are just one file data flow (or `in_folder` and `out_folder` are just one folder of data flow), from the source to the target.
 #### Do operation
-To get everything run just write `do_multiple` function.
+To get everything run just call the class with `()`.
 

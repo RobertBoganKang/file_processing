@@ -69,7 +69,7 @@ class FolderProcessing(CommonUtils):
     # set all above parameters in argparse  #
     #########################################
 
-    def do_multiple(self):
+    def __call__(self):
         """
         parallel processing on folders in file system
         :return: None
@@ -101,15 +101,15 @@ class FolderProcessing(CommonUtils):
             # make directories
             os.makedirs(out_folder, exist_ok=True)
             # do operation
-            self.do_body(in_folder, out_folder)
+            self.do(in_folder, out_folder)
         else:
-            self.do_body(in_folder)
+            self.do(in_folder)
 
     #######
     # end #
     #######
 
-    def do_body(self, *args):
+    def do(self, *args):
         """
         do function will be implemented on folders
         """
@@ -157,7 +157,7 @@ class FileProcessing(CommonUtils):
     # set all above parameters in argparse  #
     #########################################
 
-    def do_multiple(self):
+    def __call__(self):
         """
         parallel processing on files in file system
         :return: None
@@ -214,17 +214,17 @@ class FileProcessing(CommonUtils):
                 out_path = os.path.join(out_folder, out_name) + self.out_format
             else:
                 out_path = os.path.join(out_folder, out_name)
-            # the 'do_body' function is main function for batch process
-            self.do_body(in_path, out_path)
+            # the 'do' function is main function for batch process
+            self.do(in_path, out_path)
         else:
             in_path = args[0]
-            self.do_body(in_path)
+            self.do(in_path)
 
     #######
     # end #
     #######
 
-    def do_body(self, *args):
+    def do(self, *args):
         """
         do function will be implemented on files
         """
