@@ -57,7 +57,7 @@ class FolderProcessing(CommonUtils):
             # input folder
             self.input = os.path.abspath(ops.input)
             # output folder
-            self.output = os.path.abspath(ops.output)
+            self.output = [os.path.abspath(ops.output) if ops.output is not None else None][0]
             # cpu number
             self.cpu = ops.cpu_number
 
