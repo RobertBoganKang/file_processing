@@ -33,7 +33,6 @@ class CommonUtils(object):
         # test folder
         for folder in fs:
             if len(os.listdir(folder)) == 0:
-                print(folder)
                 shutil.rmtree(folder)
         # test if the output folder is empty
         if os.path.exists(target_folder) and len(os.listdir(target_folder)) == 0:
@@ -151,6 +150,8 @@ class FileProcessing(CommonUtils):
         self.pattern_identifier = '\\'
         # is pattern
         self.is_pattern = self.pattern_identifier in self.in_format
+        # no format patter
+        self.is_no_format = self.in_format == '?'
 
     #########################################
     # this section is default batch process #
@@ -168,7 +169,13 @@ class FileProcessing(CommonUtils):
             fs = glob.glob(os.path.join(self.input, '**/' + self.in_format.replace(self.pattern_identifier, '')),
                            recursive=True)
         else:
-            fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
+            if self.is_no_format:
+                fs = glob.glob(os.path.join(self.input, '**/*' + self.in_format), recursive=True)
+                fs = [x for x in fs if '.' not in x]
+                # reset input format to empty
+                self.in_format = ''
+            else:
+                fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
         fs = [x for x in fs if os.path.isfile(x)]
         if self.cpu != 1:
             pool = multiprocessing.Pool(self.cpu_count(self.cpu))
@@ -210,7 +217,10 @@ class FileProcessing(CommonUtils):
             out_name = os.path.split(in_path)[1]
             if not self.is_pattern:
                 # if not pattern, truncated the format and add a new one
-                out_name = out_name[:-len(self.in_format)]
+                if len(self.in_format) > 0:
+                    out_name = out_name[:-len(self.in_format)]
+                else:
+                    out_name += '.'
                 out_path = os.path.join(out_folder, out_name) + self.out_format
             else:
                 out_path = os.path.join(out_folder, out_name)
