@@ -62,6 +62,11 @@ class FolderProcessing(CommonUtils):
 
         # test mode: True: 1, False: 2 data flow
         self.single_mode = self.output is None
+        # process indicator
+        global process
+        process = multiprocessing.Value('i', 0)
+        self.process_file = 'process.txt'
+        self.total = None
 
     #########################################
     # this section is default batch process #
@@ -86,6 +91,9 @@ class FolderProcessing(CommonUtils):
             self.remove_empty_folder(self.input)
         else:
             self.remove_empty_folder(self.output)
+        # remove process indicator if done
+        if os.path.exists(self.process_file):
+            os.remove(self.process_file)
 
     def do_multiple_helper(self, in_folder):
         """
@@ -103,6 +111,10 @@ class FolderProcessing(CommonUtils):
             self.do(in_folder, out_folder)
         else:
             self.do(in_folder)
+        # add up counter for process indicator and show it
+        process.value += 1
+        with open(self.process_file, 'w') as w:
+            w.write(str(process.value / self.total * 100) + '%\n')
 
     #######
     # end #
@@ -152,6 +164,11 @@ class FileProcessing(CommonUtils):
         self.is_pattern = self.pattern_identifier in self.in_format
         # no format patter
         self.is_no_format = self.in_format == '?'
+        # process indicator
+        global process
+        process = multiprocessing.Value('i', 0)
+        self.process_file = 'process.txt'
+        self.total = None
 
     #########################################
     # this section is default batch process #
@@ -177,6 +194,7 @@ class FileProcessing(CommonUtils):
             else:
                 fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
         fs = [x for x in fs if os.path.isfile(x)]
+        self.total = len(fs)
         if self.cpu != 1:
             pool = multiprocessing.Pool(self.cpu_count(self.cpu))
             pool.map(self.do_multiple_helper, fs)
@@ -187,6 +205,9 @@ class FileProcessing(CommonUtils):
             self.remove_empty_folder(self.input)
         else:
             self.remove_empty_folder(self.output)
+        # remove process indicator if done
+        if os.path.exists(self.process_file):
+            os.remove(self.process_file)
 
     def do_multiple_helper(self, in_path):
         """
@@ -229,6 +250,10 @@ class FileProcessing(CommonUtils):
         else:
             in_path = args[0]
             self.do(in_path)
+        # add up counter for process indicator and show it
+        process.value += 1
+        with open(self.process_file, 'w') as w:
+            w.write(str(process.value / self.total * 100) + '%\n')
 
     #######
     # end #
