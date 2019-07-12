@@ -81,6 +81,7 @@ class FolderProcessing(CommonUtils):
         # find all patterns
         fs = glob.glob(os.path.join(self.input, '**/*'), recursive=True)
         fs = [x for x in fs if os.path.isdir(x)]
+        self.total = len(fs)
         if self.cpu != 1:
             pool = multiprocessing.Pool(self.cpu_count(self.cpu))
             pool.map(self.do_multiple_helper, fs)
