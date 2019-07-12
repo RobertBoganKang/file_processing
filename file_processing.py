@@ -7,6 +7,13 @@ import shutil
 class CommonUtils(object):
     """common tools for classes"""
 
+    def __init__(self):
+        # process indicator
+        global process
+        process = multiprocessing.Value('i', 0)
+        self.process_file = 'process.txt'
+        self.total = None
+
     @staticmethod
     def cpu_count(cpu_count):
         """
@@ -45,6 +52,7 @@ class FolderProcessing(CommonUtils):
     """
 
     def __init__(self, ops):
+        super().__init__()
         if isinstance(ops, dict):
             # input folder
             self.input = os.path.abspath(ops['input'])
@@ -62,11 +70,6 @@ class FolderProcessing(CommonUtils):
 
         # test mode: True: 1, False: 2 data flow
         self.single_mode = self.output is None
-        # process indicator
-        global process
-        process = multiprocessing.Value('i', 0)
-        self.process_file = 'process.txt'
-        self.total = None
 
     #########################################
     # this section is default batch process #
@@ -134,6 +137,7 @@ class FileProcessing(CommonUtils):
     """
 
     def __init__(self, ops):
+        super().__init__()
         if isinstance(ops, dict):
             # input folder
             self.input = os.path.abspath(ops['input'])
@@ -165,11 +169,6 @@ class FileProcessing(CommonUtils):
         self.is_pattern = self.pattern_identifier in self.in_format
         # no format patter
         self.is_no_format = self.in_format == '?'
-        # process indicator
-        global process
-        process = multiprocessing.Value('i', 0)
-        self.process_file = 'process.txt'
-        self.total = None
 
     #########################################
     # this section is default batch process #
