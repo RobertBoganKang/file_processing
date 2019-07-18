@@ -2,6 +2,7 @@ import glob
 import multiprocessing
 import os
 import shutil
+import time
 
 
 class CommonUtils(object):
@@ -13,6 +14,28 @@ class CommonUtils(object):
         process = multiprocessing.Value('i', 0)
         self.process_file = 'process.txt'
         self.total = None
+        self.starting_time = time.time()
+
+    @staticmethod
+    def time_conversion(second):
+        return f'{int(second / 3600)}:{int(second / 60) % 60}:{int(second) % 60}'
+
+    def process_update(self):
+        process.value += 1
+
+        with open(self.process_file, 'w') as w:
+            w.write('[process]-(' + str(round(process.value / self.total * 100, 5)) + '%)')
+            ending_time = time.time()
+            time_consume = ending_time - self.starting_time
+            velocity = time_consume / process.value
+            time_remaining = (self.total - process.value) * velocity
+            if velocity > 1:
+                w.write('\t(' + str(round(velocity)) + ')-[s/ea]')
+            else:
+                w.write('\t(' + str(round(1 / velocity)) + ')-[ea/s]')
+            w.write('\t[time]-(' + self.time_conversion(time_consume) + ')')
+            w.write('\t[remain]-(' + self.time_conversion(time_remaining) + ')')
+            w.write('\n')
 
     @staticmethod
     def cpu_count(cpu_count):
@@ -95,6 +118,7 @@ class FolderProcessing(CommonUtils):
             self.remove_empty_folder(self.input)
         else:
             self.remove_empty_folder(self.output)
+
         # remove process indicator if done
         if os.path.exists(self.process_file):
             os.remove(self.process_file)
@@ -115,10 +139,9 @@ class FolderProcessing(CommonUtils):
             self.do(in_folder, out_folder)
         else:
             self.do(in_folder)
-        # add up counter for process indicator and show it
-        process.value += 1
-        with open(self.process_file, 'w') as w:
-            w.write(str(process.value / self.total * 100) + '%\n')
+
+        # update process indicator
+        self.process_update()
 
     #######
     # end #
@@ -205,6 +228,7 @@ class FileProcessing(CommonUtils):
             self.remove_empty_folder(self.input)
         else:
             self.remove_empty_folder(self.output)
+
         # remove process indicator if done
         if os.path.exists(self.process_file):
             os.remove(self.process_file)
@@ -250,10 +274,9 @@ class FileProcessing(CommonUtils):
         else:
             in_path = args[0]
             self.do(in_path)
-        # add up counter for process indicator and show it
-        process.value += 1
-        with open(self.process_file, 'w') as w:
-            w.write(str(process.value / self.total * 100) + '%\n')
+
+        # update process indicator
+        self.process_update()
 
     #######
     # end #
