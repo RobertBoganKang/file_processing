@@ -23,7 +23,7 @@ If `output` or `out_format` is `None`, it is consider to be target folder operat
 Function `do`:
 Consider parameters `in_path` and `out_path` are just one file data flow (or `in_folder` and `out_folder` are just one folder of data flow), from the source to the target.
 #### Process Indicator
-Open file `process.txt` within the same folder of project, or use `tailf process.txt` to check the process of all project.
+Open file `process.txt` within the same folder of project, or use `tail -f process.txt` to check the process of all project.
 #### Do operation
 To get everything run just call the class with `()`.
 
