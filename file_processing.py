@@ -12,7 +12,7 @@ class CommonUtils(object):
         # process indicator
         global _process_counter
         _process_counter = multiprocessing.Value('i', 0)
-        self.starting_time = time.time()
+        self.starting_time = None
         self.process_file = 'process.txt'
         self.total = None
 
@@ -106,7 +106,11 @@ class FolderProcessing(CommonUtils):
         # find all patterns
         fs = glob.glob(os.path.join(self.input, '**/*'), recursive=True)
         fs = [x for x in fs if os.path.isdir(x)]
+
+        # process indicator parameters
         self.total = len(fs)
+        self.starting_time = time.time()
+
         if self.cpu != 1:
             pool = multiprocessing.Pool(self.cpu_count(self.cpu))
             pool.map(self.do_multiple_helper, fs)
@@ -220,7 +224,11 @@ class FileProcessing(CommonUtils):
             else:
                 fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
         fs = [x for x in fs if os.path.isfile(x)]
+
+        # process indicator parameters
         self.total = len(fs)
+        self.starting_time = time.time()
+
         if self.cpu != 1:
             pool = multiprocessing.Pool(self.cpu_count(self.cpu))
             pool.map(self.do_multiple_helper, fs)
