@@ -10,24 +10,24 @@ class CommonUtils(object):
 
     def __init__(self):
         # process indicator
-        global process, starting_time
-        process = multiprocessing.Value('i', 0)
-        starting_time = time.time()
+        global _process_counter
+        _process_counter = multiprocessing.Value('i', 0)
+        self._process_starting_time = time.time()
         self.process_file = 'process.txt'
-        self.total = None
+        self._process_total = None
 
     @staticmethod
     def time_conversion(second):
         return f'{int(second / 3600)}:{int(second / 60) % 60}:{int(second) % 60}'
 
     def process_update(self):
-        process.value += 1
+        _process_counter.value += 1
         ending_time = time.time()
         with open(self.process_file, 'w') as w:
-            w.write('[process]-(' + str(round(process.value / self.total * 100, 5)) + '%)')
-            time_consume = ending_time - starting_time
-            velocity = time_consume / process.value
-            time_remaining = (self.total - process.value) * velocity
+            w.write('[process]-(' + str(round(_process_counter.value / self._process_total * 100, 5)) + '%)')
+            time_consume = ending_time - self._process_starting_time
+            velocity = time_consume / _process_counter.value
+            time_remaining = (self._process_total - _process_counter.value) * velocity
             if velocity > 1:
                 w.write('\t(' + str(round(velocity, 2)) + ')-[s/ea]')
             else:
