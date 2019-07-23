@@ -12,9 +12,9 @@ class CommonUtils(object):
         # process indicator
         global _process_counter
         _process_counter = multiprocessing.Value('i', 0)
-        self._process_starting_time = time.time()
+        self.starting_time = time.time()
         self.process_file = 'process.txt'
-        self._process_total = None
+        self.total = None
 
     @staticmethod
     def time_conversion(second):
@@ -24,10 +24,10 @@ class CommonUtils(object):
         _process_counter.value += 1
         ending_time = time.time()
         with open(self.process_file, 'w') as w:
-            w.write('[process]-(' + str(round(_process_counter.value / self._process_total * 100, 5)) + '%)')
-            time_consume = ending_time - self._process_starting_time
+            w.write('[process]-(' + str(round(_process_counter.value / self.total * 100, 5)) + '%)')
+            time_consume = ending_time - self.starting_time
             velocity = time_consume / _process_counter.value
-            time_remaining = (self._process_total - _process_counter.value) * velocity
+            time_remaining = (self.total - _process_counter.value) * velocity
             if velocity > 1:
                 w.write('\t(' + str(round(velocity, 3)) + ')-[s/ea]')
             else:
@@ -189,8 +189,11 @@ class FileProcessing(CommonUtils):
         self.pattern_identifier = '\\'
         # is pattern
         self.is_pattern = self.pattern_identifier in self.in_format
-        # no format patter
-        self.is_no_format = self.in_format == '?'
+        # in format is other pattern: `?` is no format, `??` is all format
+        self.is_no_format = '?' in self.in_format
+        self.is_all_format = self.in_format == '??'
+        # if out format pattern follow the same as input
+        self.is_same_out_format = self.in_format == '?'
 
     #########################################
     # this section is default batch process #
@@ -210,7 +213,8 @@ class FileProcessing(CommonUtils):
         else:
             if self.is_no_format:
                 fs = glob.glob(os.path.join(self.input, '**/*' + self.in_format), recursive=True)
-                fs = [x for x in fs if '.' not in x]
+                if not self.is_all_format:
+                    fs = [x for x in fs if '.' not in x]
                 # reset input format to empty
                 self.in_format = ''
             else:
@@ -259,15 +263,15 @@ class FileProcessing(CommonUtils):
         if not self.single_mode:
             in_path, out_folder = args[0], args[1]
             out_name = os.path.split(in_path)[1]
-            if not self.is_pattern:
+            if self.is_pattern or self.is_same_out_format:
+                out_path = os.path.join(out_folder, out_name)
+            else:
                 # if not pattern, truncated the format and add a new one
                 if len(self.in_format) > 0:
                     out_name = out_name[:-len(self.in_format)]
                 else:
                     out_name += '.'
                 out_path = os.path.join(out_folder, out_name) + self.out_format
-            else:
-                out_path = os.path.join(out_folder, out_name)
             # the 'do' function is main function for batch process
             self.do(in_path, out_path)
         else:
