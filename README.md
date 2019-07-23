@@ -16,8 +16,8 @@ If `output` or `out_format` is `None`, it is consider to be target folder operat
 #### Required Parameters:
 * `input`: input folder to do operation
 * `output`: output folder to export something with the same file system structures
-* `in_format`: format to search to do operation (for file processing)
-* `out_format`: the export file format (for file processing)
+* `in_format`: format to search to do operation (for file processing); `?` is no format in the end, `??` is all format
+* `out_format`: the export file format (for file processing); `?` is the same pattern as input
 * `cpu_number`: the number of cpu to process
 #### Overwrite Function
 Function `do`:
