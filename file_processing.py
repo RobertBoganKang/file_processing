@@ -29,9 +29,9 @@ class CommonUtils(object):
             velocity = time_consume / _process_counter.value
             time_remaining = (self._process_total - _process_counter.value) * velocity
             if velocity > 1:
-                w.write('\t(' + str(round(velocity, 2)) + ')-[s/ea]')
+                w.write('\t(' + str(round(velocity, 3)) + ')-[s/ea]')
             else:
-                w.write('\t(' + str(round(1 / velocity, 2)) + ')-[ea/s]')
+                w.write('\t(' + str(round(1 / velocity, 3)) + ')-[ea/s]')
             w.write('\t[time]-(' + self.time_conversion(time_consume) + ')')
             w.write('\t[remain]-(' + self.time_conversion(time_remaining) + ')')
             w.write('\n')
