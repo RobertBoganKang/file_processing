@@ -1,8 +1,38 @@
+import functools
 import glob
 import multiprocessing
 import os
 import shutil
+import signal
 import time
+
+
+def timeout(seconds):
+    """
+    https://cloud.tencent.com/developer/article/1043966
+    :param seconds: int; time seconds
+    :return: wrapper function
+    """
+    seconds = int(seconds)
+
+    def decorated(func):
+
+        def _handle_timeout(signum, frame):
+            print('<timeout error>')
+            raise TimeoutError()
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            # noinspection PyBroadException
+            try:
+                func(*args, **kwargs)
+            except Exception:
+                signal.alarm(0)
+
+        return functools.wraps(func)(wrapper)
+
+    return decorated
 
 
 class CommonUtils(object):
