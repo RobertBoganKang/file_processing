@@ -40,6 +40,7 @@ class CommonUtils(object):
 
     def __init__(self):
         # process indicator
+        # noinspection PyGlobalUndefined
         global _process_counter
         _process_counter = multiprocessing.Value('i', 0)
         self.starting_time = None
