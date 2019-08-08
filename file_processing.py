@@ -76,7 +76,7 @@ class CommonUtils(object):
         max_cpu = multiprocessing.cpu_count()
         if 0 < cpu <= max_cpu:
             return cpu
-        if cpu == 0 or cpu > max_cpu:
+        elif cpu == 0 or cpu > max_cpu:
             return max_cpu
         elif 1 - max_cpu < cpu < 0:
             return max_cpu + cpu
