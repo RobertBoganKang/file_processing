@@ -68,15 +68,20 @@ class CommonUtils(object):
             w.write('\n')
 
     @staticmethod
-    def cpu_count(cpu_count):
+    def cpu_count(cpu):
         """
         get the cpu number
         :return: int; valid cpu number
         """
         max_cpu = multiprocessing.cpu_count()
-        if cpu_count == 0 or cpu_count > max_cpu:
-            cpu_count = max_cpu
-        return cpu_count
+        if 0 < cpu <= max_cpu:
+            return cpu
+        if cpu == 0 or cpu > max_cpu:
+            return max_cpu
+        elif 1 - max_cpu < cpu < 0:
+            return max_cpu + cpu
+        else:
+            return 1
 
     @staticmethod
     def remove_empty_folder(target_folder):
