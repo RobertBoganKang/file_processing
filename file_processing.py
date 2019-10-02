@@ -17,6 +17,7 @@ def timeout(seconds):
 
     def decorated(func):
 
+        # noinspection PyUnusedLocal
         def _handle_timeout(signum, frame):
             print('<timeout error>')
             raise TimeoutError()
@@ -148,8 +149,8 @@ class FolderProcessing(CommonUtils):
         self.starting_time = time.time()
 
         if self.cpu != 1:
-            pool = multiprocessing.Pool(self.cpu_count(self.cpu))
-            pool.map(self.do_multiple_helper, fs)
+            with multiprocessing.Pool(self.cpu_count(self.cpu)) as pool:
+                pool.map(self.do_multiple_helper, fs)
         else:
             for in_folder in fs:
                 self.do_multiple_helper(in_folder)
@@ -266,8 +267,8 @@ class FileProcessing(CommonUtils):
         self.starting_time = time.time()
 
         if self.cpu != 1:
-            pool = multiprocessing.Pool(self.cpu_count(self.cpu))
-            pool.map(self.do_multiple_helper, fs)
+            with multiprocessing.Pool(self.cpu_count(self.cpu)) as pool:
+                pool.map(self.do_multiple_helper, fs)
         else:
             for in_folder in fs:
                 self.do_multiple_helper(in_folder)
