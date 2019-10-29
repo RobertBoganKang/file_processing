@@ -45,7 +45,7 @@ class CommonUtils(object):
         global _process_counter
         _process_counter = multiprocessing.Value('i', 0)
         self.starting_time = None
-        self.process_file = 'process.txt'
+        self.process_file = os.path.abspath('process.txt')
         self.total = None
 
     @staticmethod
