@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # ...
     args = parser.parse_args()
 
-    # or use api
+    # or use dict
     # args = {
     #     'input': 'in',
     #     'output': 'out',
