@@ -48,55 +48,54 @@ class FileProcessing(object):
         super().__init__()
         if isinstance(ops, dict):
             # input folder
-            self.input = os.path.abspath(ops['input'])
+            self._input = os.path.abspath(ops['input'])
             # output folder
-            self.output = self._set_parser_value(ops, 'output', None, is_dict=True)
+            self._output = self._set_parser_value(ops, 'output', None, is_dict=True)
             # input format
-            self.in_format = self._set_parser_value(ops, 'in_format', '??', is_dict=True)
+            self._in_format = self._set_parser_value(ops, 'in_format', '??', is_dict=True)
             # output format
-            self.out_format = self._set_parser_value(ops, 'out_format', None, is_dict=True)
+            self._out_format = self._set_parser_value(ops, 'out_format', None, is_dict=True)
             # cpu number
-            self.cpu = self._set_parser_value(ops, 'cpu_number', 0, is_dict=True)
+            self._cpu = self._set_parser_value(ops, 'cpu_number', 0, is_dict=True)
             # logger level
-            self.logger_level = self._set_parser_value(ops, 'logger_level', None, is_dict=True)
+            self._logger_level = self._set_parser_value(ops, 'logger_level', 'info', is_dict=True)
         else:
             # input folder
-            self.input = os.path.abspath(ops.input)
+            self._input = os.path.abspath(ops._input)
             # output folder
-            self.output = self._set_parser_value(ops, 'output', None)
+            self._output = self._set_parser_value(ops, 'output', None)
             # input format
-            self.in_format = self._set_parser_value(ops, 'in_format', '??')
+            self._in_format = self._set_parser_value(ops, 'in_format', '??')
             # output format
-            self.out_format = self._set_parser_value(ops, 'out_format', None)
+            self._out_format = self._set_parser_value(ops, 'out_format', None)
             # cpu number
-            self.cpu = self._set_parser_value(ops, 'cpu_number', 0)
+            self._cpu = self._set_parser_value(ops, 'cpu_number', 0)
             # logger level
-            self.logger_level = self._set_parser_value(ops, 'logger_level', None)
+            self._logger_level = self._set_parser_value(ops, 'logger_level', 'info')
 
         # fix output
-        self.output = [os.path.abspath(self.output) if self.output is not None else None][0]
+        self._output = [os.path.abspath(self._output) if self._output is not None else None][0]
         # test mode: True: 1, False: 2 data flow
-        self._single_mode = self.output is None or self.out_format is None
+        self._single_mode = self._output is None or self._out_format is None
         # pattern identifier
         self._pattern_identifier = '\\'
         # is pattern
-        self._is_pattern = self._pattern_identifier in self.in_format
+        self._is_pattern = self._pattern_identifier in self._in_format
         # in format is other pattern: `?` is no format, `??` is all format
-        self._is_no_format = '?' in self.in_format
-        self._is_all_format = self.in_format == '??'
+        self._is_no_format = '?' in self._in_format
+        self._is_all_format = self._in_format == '??'
         # if out format pattern follow the same as input
-        self._is_same_out_format = self.in_format == '?'
+        self._is_same_out_format = self._in_format == '?'
         # empty folder counter
         self._empty_file_counter = 0
         self._total_file_number = None
         self._stop_cleaning_ratio = 0.2
         # logger
-        if self.logger_level is not None:
-            self.logger = None
-            self._logger_folder = 'log'
-            self._log_path = os.path.join(self._logger_folder,
-                                          time.strftime(f'log_%Y%m%d%H%M%S', time.localtime(time.time())) + '.log')
-            self._get_logger()
+        self.logger = None
+        self._logger_folder = 'log'
+        self._log_path = os.path.join(self._logger_folder,
+                                      time.strftime(f'log_%Y%m%d%H%M%S', time.localtime(time.time())) + '.log')
+        self._get_logger()
 
     @staticmethod
     def _cpu_count(cpu):
@@ -131,13 +130,13 @@ class FileProcessing(object):
 
         # create a logger
         self.logger = logging.getLogger()
-        if self.logger_level.lower() == 'info':
+        if self._logger_level.lower() == 'info':
             self.logger.setLevel(logging.INFO)
-        elif self.logger_level.lower() == 'warning':
+        elif self._logger_level.lower() == 'warning':
             self.logger.setLevel(logging.WARNING)
-        elif self.logger_level.lower() == 'error':
+        elif self._logger_level.lower() == 'error':
             self.logger.setLevel(logging.ERROR)
-        elif self.logger_level.lower() == 'debug':
+        elif self._logger_level.lower() == 'debug':
             self.logger.setLevel(logging.DEBUG)
         else:
             raise ValueError('config.yml: logger.logger_level parameter ERROR.')
@@ -188,8 +187,8 @@ class FileProcessing(object):
         """
         if not self._single_mode:
             # prepare output path
-            truncated_path = os.path.split(in_path)[0][len(self.input) + 1:]
-            out_folder = os.path.join(self.output, truncated_path)
+            truncated_path = os.path.split(in_path)[0][len(self._input) + 1:]
+            out_folder = os.path.join(self._output, truncated_path)
             # make directories
             os.makedirs(out_folder, exist_ok=True)
             # do operation
@@ -212,11 +211,11 @@ class FileProcessing(object):
                 out_path = os.path.join(out_folder, out_name)
             else:
                 # if not pattern, truncated the format and add a new one
-                if len(self.in_format) > 0:
-                    out_name = out_name[:-len(self.in_format)]
+                if len(self._in_format) > 0:
+                    out_name = out_name[:-len(self._in_format)]
                 else:
                     out_name += '.'
-                out_path = os.path.join(out_folder, out_name) + self.out_format
+                out_path = os.path.join(out_folder, out_name) + self._out_format
             # the 'do' function is main function for batch process
             self.do(in_path, out_path)
         else:
@@ -237,29 +236,29 @@ class FileProcessing(object):
         # find all patterns
         if self._is_pattern:
             # if contains `pattern_identifier`, it is considered to be patterns
-            fs = glob.glob(os.path.join(self.input, '**/' + self.in_format.replace(self._pattern_identifier, '')),
+            fs = glob.glob(os.path.join(self._input, '**/' + self._in_format.replace(self._pattern_identifier, '')),
                            recursive=True)
         else:
             if self._is_no_format:
-                fs = glob.glob(os.path.join(self.input, '**/*' + self.in_format), recursive=True)
+                fs = glob.glob(os.path.join(self._input, '**/*' + self._in_format), recursive=True)
                 if not self._is_all_format:
                     fs = [x for x in fs if '.' not in x]
                 # reset input format to empty
-                self.in_format = ''
+                self._in_format = ''
             else:
-                fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
+                fs = glob.glob(os.path.join(self._input, '**/*.' + self._in_format), recursive=True)
         fs = [x for x in fs if os.path.isfile(x)]
         self._total_file_number = len(fs)
 
-        if self.cpu != 1:
-            pool = mp.Pool(self._cpu_count(self.cpu))
+        if self._cpu != 1:
+            pool = mp.Pool(self._cpu_count(self._cpu))
             with tqdm(total=len(fs)) as p_bar:
                 def _callback_function(file_path):
                     # clean file path if few situation happen
                     self._empty_file_counter += 1
                     if not self._single_mode and (
                             self._empty_file_counter / self._total_file_number < self._stop_cleaning_ratio):
-                        self._simplify_path(self.input, file_path)
+                        self._simplify_path(self._input, file_path)
                     # update pbar
                     p_bar.update()
 
@@ -275,7 +274,7 @@ class FileProcessing(object):
 
         # clean output folder
         if not self._single_mode and (self._empty_file_counter / self._total_file_number >= self._stop_cleaning_ratio):
-            self._remove_empty_folder(self.output)
+            self._remove_empty_folder(self._output)
         # remove empty log
         self._remove_empty_file(self._log_path)
         self._remove_empty_folder(self._logger_folder)
