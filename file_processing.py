@@ -52,11 +52,11 @@ class FileProcessing(object):
             # output folder
             self.output = self._set_parser_value(ops, 'output', None, is_dict=True)
             # input format
-            self.in_format = ops['in_format']
+            self.in_format = self._set_parser_value(ops, 'in_format', '??', is_dict=True)
             # output format
             self.out_format = self._set_parser_value(ops, 'out_format', None, is_dict=True)
             # cpu number
-            self.cpu = ops['cpu_number']
+            self.cpu = self._set_parser_value(ops, 'cpu_number', 0, is_dict=True)
             # logger level
             self.logger_level = self._set_parser_value(ops, 'logger_level', None, is_dict=True)
         else:
@@ -65,11 +65,11 @@ class FileProcessing(object):
             # output folder
             self.output = self._set_parser_value(ops, 'output', None)
             # input format
-            self.in_format = ops.in_format
+            self.in_format = self._set_parser_value(ops, 'in_format', '??')
             # output format
             self.out_format = self._set_parser_value(ops, 'out_format', None)
             # cpu number
-            self.cpu = ops.cpu_number
+            self.cpu = self._set_parser_value(ops, 'cpu_number', 0)
             # logger level
             self.logger_level = self._set_parser_value(ops, 'logger_level', None)
 
@@ -97,7 +97,7 @@ class FileProcessing(object):
             self._get_logger()
 
     @staticmethod
-    def cpu_count(cpu):
+    def _cpu_count(cpu):
         """
         get the cpu number
         :return: int; valid cpu number
@@ -253,7 +253,7 @@ class FileProcessing(object):
         self._total_file_number = len(fs)
 
         if self.cpu != 1:
-            pool = mp.Pool(self.cpu_count(self.cpu))
+            pool = mp.Pool(self._cpu_count(self.cpu))
             with tqdm(total=len(fs)) as p_bar:
                 def _callback_function(file_path):
                     # clean file path if few situation happen
