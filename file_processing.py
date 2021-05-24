@@ -93,7 +93,9 @@ class FileProcessing(object):
         # logger
         if self.logger_level is not None:
             self.logger = None
-            self._logger_path = 'log'
+            self._logger_folder = 'log'
+            self._log_path = os.path.join(self._logger_folder,
+                                          time.strftime(f'log_%Y%m%d%H%M%S', time.localtime(time.time())) + '.log')
             self._get_logger()
 
     @staticmethod
@@ -125,8 +127,7 @@ class FileProcessing(object):
     def _get_logger(self):
         """ get a logger """
         # makedir
-        os.makedirs(self._logger_path, exist_ok=True)
-        log_name = time.strftime(f'log_%Y%m%d%H%M%S', time.localtime(time.time()))
+        os.makedirs(self._logger_folder, exist_ok=True)
 
         # create a logger
         self.logger = logging.getLogger()
@@ -141,7 +142,7 @@ class FileProcessing(object):
         else:
             raise ValueError('config.yml: logger.logger_level parameter ERROR.')
         # create handler
-        fh = logging.FileHandler(os.path.join(self._logger_path, log_name + '.log'), encoding='utf-8')
+        fh = logging.FileHandler(self._log_path, encoding='utf-8')
         fh.setLevel(logging.DEBUG)
         # define handler format
         formatter = logging.Formatter("%(asctime)s|%(levelname)s|%(filename)s[%(lineno)d]|%(message)s")
@@ -155,28 +156,26 @@ class FileProcessing(object):
         target folder may empty, then remove it
         :return: None
         """
-        # find all patterns
-        fs = glob.glob(os.path.join(target_folder, '**/*'), recursive=True)
-        # select folders
-        fs = [x for x in fs if os.path.isdir(x)]
-        fs.sort()
-        fs.reverse()
-        # test folder
-        for folder in fs:
-            if len(os.listdir(folder)) == 0:
-                shutil.rmtree(folder)
-        # test if the output folder is empty
-        if os.path.exists(target_folder) and len(os.listdir(target_folder)) == 0:
-            shutil.rmtree(target_folder)
+        for root, dirs, files in os.walk(target_folder, topdown=False):
+            for name in dirs:
+                dir_path = os.path.join(root, name)
+                if not os.listdir(dir_path):
+                    path = os.path.join(root, name)
+                    shutil.rmtree(path)
+
+    @staticmethod
+    def _remove_empty_file(target_file):
+        if os.path.exists(target_file) and os.path.getsize(target_file) == 0:
+            os.remove(target_file)
 
     @staticmethod
     def _simplify_path(base, leaf):
+        """ remove empty folders recursively to base folder"""
         if not os.path.exists(leaf):
             folder = leaf
             while True:
                 folder = os.path.dirname(folder)
-                if len(os.listdir(folder)) == 0:
-                    print('remove', folder)
+                if not os.listdir(folder):
                     shutil.rmtree(folder)
                 elif folder == base:
                     break
@@ -277,3 +276,6 @@ class FileProcessing(object):
         # clean output folder
         if not self._single_mode and (self._empty_file_counter / self._total_file_number >= self._stop_cleaning_ratio):
             self._remove_empty_folder(self.output)
+        # remove empty log
+        self._remove_empty_file(self._log_path)
+        self._remove_empty_folder(self._logger_folder)
