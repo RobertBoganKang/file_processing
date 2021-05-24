@@ -43,6 +43,8 @@ if __name__ == '__main__':
     parser.add_argument('--cpu_number', '-j', type=int, help='cpu number of processing', default=0)
     parser.add_argument('--in_format', '-if', type=str, help='define the input format', default='xxx')
     parser.add_argument('--out_format', '-of', type=str, help='define the output format', default=None)
+    parser.add_argument('--logger_level', '-log', type=str,
+                        help='define the logger level, if `None`: no log file generated', default=None)
     # ...
     args = parser.parse_args()
 
