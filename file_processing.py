@@ -61,7 +61,7 @@ class FileProcessing(object):
             self._logger_level = self._set_parser_value(ops, 'logger_level', 'info', is_dict=True)
         else:
             # input folder
-            self._input = os.path.abspath(ops._input)
+            self._input = os.path.abspath(ops.input)
             # output folder
             self._output = self._set_parser_value(ops, 'output', None)
             # input format
@@ -161,6 +161,9 @@ class FileProcessing(object):
                 if not os.listdir(dir_path):
                     path = os.path.join(root, name)
                     shutil.rmtree(path)
+        # remove root
+        if not os.listdir(target_folder):
+            shutil.rmtree(target_folder)
 
     @staticmethod
     def _remove_empty_file(target_file):
@@ -256,15 +259,14 @@ class FileProcessing(object):
                 def _callback_function(file_path):
                     # clean file path if few situation happen
                     self._empty_file_counter += 1
-                    if not self._single_mode and (
+                    if not self._single_mode and not self._total_file_number and (
                             self._empty_file_counter / self._total_file_number < self._stop_cleaning_ratio):
                         self._simplify_path(self._input, file_path)
                     # update pbar
                     p_bar.update()
 
                 for f in fs:
-                    pool.apply_async(self._do_multiple_helper, args=(f,),
-                                     callback=_callback_function)
+                    pool.apply_async(self._do_multiple_helper, args=(f,), callback=_callback_function)
                 # set multiprocessing within `tqdm` for process bar update
                 pool.close()
                 pool.join()
@@ -273,7 +275,8 @@ class FileProcessing(object):
                 self._do_multiple_helper(in_folder)
 
         # clean output folder
-        if not self._single_mode and (self._empty_file_counter / self._total_file_number >= self._stop_cleaning_ratio):
+        if not self._single_mode and not self._total_file_number and (
+                self._empty_file_counter / self._total_file_number >= self._stop_cleaning_ratio):
             self._remove_empty_folder(self._output)
         # remove empty log
         self._remove_empty_file(self._log_path)
