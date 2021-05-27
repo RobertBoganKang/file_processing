@@ -278,7 +278,7 @@ class FileProcessing(object):
                 self._do_multiple_helper(f)
 
         # clean output folder
-        if not self._single_mode(self._empty_file_counter / self._total_file_number >= self._stop_cleaning_ratio):
+        if not self._single_mode and (self._empty_file_counter / self._total_file_number >= self._stop_cleaning_ratio):
             self._remove_empty_folder(self._output)
         # remove empty log
         self._remove_empty_file(self._log_path)
