@@ -252,6 +252,9 @@ class FileProcessing(object):
                 fs = glob.glob(os.path.join(self._input, '**/*.' + self._in_format), recursive=True)
         fs = [x for x in fs if os.path.isfile(x)]
         self._total_file_number = len(fs)
+        if not self._total_file_number:
+            print('WARNING: no file has been found!')
+            return
 
         if self._cpu != 1:
             pool = mp.Pool(self._cpu_count(self._cpu))
@@ -259,7 +262,7 @@ class FileProcessing(object):
                 def _callback_function(file_path):
                     # clean file path if few situation happen
                     self._empty_file_counter += 1
-                    if not self._single_mode and not self._total_file_number and (
+                    if not self._single_mode and (
                             self._empty_file_counter / self._total_file_number < self._stop_cleaning_ratio):
                         self._simplify_path(self._input, file_path)
                     # update pbar
@@ -271,12 +274,11 @@ class FileProcessing(object):
                 pool.close()
                 pool.join()
         else:
-            for in_folder in fs:
-                self._do_multiple_helper(in_folder)
+            for f in fs:
+                self._do_multiple_helper(f)
 
         # clean output folder
-        if not self._single_mode and not self._total_file_number and (
-                self._empty_file_counter / self._total_file_number >= self._stop_cleaning_ratio):
+        if not self._single_mode(self._empty_file_counter / self._total_file_number >= self._stop_cleaning_ratio):
             self._remove_empty_folder(self._output)
         # remove empty log
         self._remove_empty_file(self._log_path)
