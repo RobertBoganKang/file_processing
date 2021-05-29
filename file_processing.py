@@ -89,7 +89,7 @@ class FileProcessing(object):
         # empty folder counter
         self._empty_file_counter = 0
         self._total_file_number = None
-        self._stop_cleaning_ratio = 0.2
+        self._stop_cleaning_ratio = 0.1
         # logger
         self.logger = None
         self._logger_folder = 'log'
@@ -130,7 +130,7 @@ class FileProcessing(object):
 
         # create a logger
         self.logger = logging.getLogger()
-        if self._logger_level.lower() == 'info':
+        if self._logger_level is None or self._logger_level.lower() == 'info':
             self.logger.setLevel(logging.INFO)
         elif self._logger_level.lower() == 'warning':
             self.logger.setLevel(logging.WARNING)
@@ -139,7 +139,7 @@ class FileProcessing(object):
         elif self._logger_level.lower() == 'debug':
             self.logger.setLevel(logging.DEBUG)
         else:
-            raise ValueError('config.yml: logger.logger_level parameter ERROR.')
+            raise ValueError('WARNING: `logger_level` parameter ERROR.')
         # create handler
         fh = logging.FileHandler(self._log_path, encoding='utf-8')
         fh.setLevel(logging.DEBUG)
@@ -177,10 +177,10 @@ class FileProcessing(object):
             folder = leaf
             while True:
                 folder = os.path.dirname(folder)
-                if not os.listdir(folder):
-                    shutil.rmtree(folder)
-                elif folder == base:
+                if len(folder) < len(base):
                     break
+                if os.path.exists(folder) and not os.listdir(folder):
+                    shutil.rmtree(folder)
 
     def _do_multiple_helper(self, in_path):
         """
@@ -195,10 +195,11 @@ class FileProcessing(object):
             # make directories
             os.makedirs(out_folder, exist_ok=True)
             # do operation
-            self._do_single(in_path, out_folder)
+            out_path = self._do_single(in_path, out_folder)
+            return out_path
         else:
             self._do_single(in_path)
-        return in_path
+            return
 
     def _do_single(self, *args):
         """
@@ -221,6 +222,7 @@ class FileProcessing(object):
                 out_path = os.path.join(out_folder, out_name) + self._out_format
             # the 'do' function is main function for batch process
             self.do(in_path, out_path)
+            return out_path
         else:
             in_path = args[0]
             self.do(in_path)
@@ -261,10 +263,11 @@ class FileProcessing(object):
             with tqdm(total=len(fs)) as p_bar:
                 def _callback_function(file_path):
                     # clean file path if few situation happen
-                    self._empty_file_counter += 1
+                    if not os.path.exists(file_path):
+                        self._empty_file_counter += 1
                     if not self._single_mode and (
                             self._empty_file_counter / self._total_file_number < self._stop_cleaning_ratio):
-                        self._simplify_path(self._input, file_path)
+                        self._simplify_path(self._output, file_path)
                     # update pbar
                     p_bar.update()
 
