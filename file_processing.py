@@ -115,13 +115,16 @@ class FileProcessing(object):
 
     @staticmethod
     def _set_parser_value(ops, parser_name, default_value, is_dict=False):
+        value = None
         if parser_name in ops:
             if is_dict:
-                return ops[parser_name]
+                value = ops[parser_name]
             else:
-                return eval('ops.' + parser_name)
-        else:
+                value = eval('ops.' + parser_name)
+        if value is None:
             return default_value
+        else:
+            return value
 
     def _get_logger(self):
         """ get a logger """
@@ -130,7 +133,7 @@ class FileProcessing(object):
 
         # create a logger
         self.logger = logging.getLogger()
-        if self._logger_level is None or self._logger_level.lower() == 'info':
+        if self._logger_level.lower() == 'info':
             self.logger.setLevel(logging.INFO)
         elif self._logger_level.lower() == 'warning':
             self.logger.setLevel(logging.WARNING)
@@ -199,7 +202,6 @@ class FileProcessing(object):
             return out_path
         else:
             self._do_single(in_path)
-            return
 
     def _do_single(self, *args):
         """
