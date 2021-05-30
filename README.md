@@ -14,14 +14,15 @@ Build a `dict` with all required parameters below, and pass into the class.
 
 If `output` or `out_format` is `None`, it is consider to be target folder operation, else the data is from `input` to `output`.
 #### Required Parameters:
-* `input`: input folder to do operation;
-* `in_format`: format to search to do operation (for file processing); 
-  * if starts with `\\` letter, the file name will follow a Regular Expression;
+* Inputs:
+  * `input`: input folder to do operation; or `input_path_list`: use a text file which stores paths instead of finding file paths;
+  * `in_format`: format to search to do operation (for file processing); 
+    * if starts with `\\` letter, the file name will follow a Regular Expression;
 #### Optional Parameters:
 
-* `output`: output folder to export something with the same file system structures (for `io`);
-* `out_format`: the export file format (for file processing); `?` is the same pattern as input (for `io`);
-* `path_list`: use the `path_list` to ignore the finding file procedure (`input` is not required to give);
+* Outputs (for `io` data flow):
+  * `output`: output folder to export something with the same file system structures (for `io`);
+  * `out_format`: the export file format (for file processing); `?` is the same pattern as input (for `io`);
 * `cpu_number`: the number of CPU to process;
 * `logger_level`: defines the level of logger to print, `self.logger` is logger parameter to use; if `None`: no log file generated;
 

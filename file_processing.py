@@ -52,7 +52,7 @@ class FileProcessing(object):
             self._output = self._set_parser_value(ops, 'output', None, is_dict=True)
             self._in_format = self._set_parser_value(ops, 'in_format', '\\', is_dict=True)
             self._out_format = self._set_parser_value(ops, 'out_format', None, is_dict=True)
-            self._path_list = self._set_parser_value(ops, 'path_list', None, is_dict=True)
+            self._input_path_list = self._set_parser_value(ops, 'input_path_list', None, is_dict=True)
             self._cpu = self._set_parser_value(ops, 'cpu_number', 0, is_dict=True)
             self._logger_level = self._set_parser_value(ops, 'logger_level', 'info', is_dict=True)
         else:
@@ -60,7 +60,7 @@ class FileProcessing(object):
             self._output = self._set_parser_value(ops, 'output', None)
             self._in_format = self._set_parser_value(ops, 'in_format', '\\')
             self._out_format = self._set_parser_value(ops, 'out_format', None)
-            self._path_list = self._set_parser_value(ops, 'path_list', None)
+            self._input_path_list = self._set_parser_value(ops, 'input_path_list', None)
             self._cpu = self._set_parser_value(ops, 'cpu_number', 0)
             self._logger_level = self._set_parser_value(ops, 'logger_level', 'info')
 
@@ -144,7 +144,7 @@ class FileProcessing(object):
 
     @staticmethod
     def _remove_empty_folder(target_folder):
-        """ target folder may empty, then remove it """
+        """ if target folder is empty, then remove it """
         for root, dirs, files in os.walk(target_folder, topdown=False):
             for name in dirs:
                 dir_path = os.path.join(root, name)
@@ -157,12 +157,13 @@ class FileProcessing(object):
 
     @staticmethod
     def _remove_empty_file(target_file):
+        """ if target file is empty, then remove it """
         if os.path.exists(target_file) and os.path.getsize(target_file) == 0:
             os.remove(target_file)
 
     @staticmethod
     def _simplify_path(base, leaf):
-        """ remove empty folders recursively to base folder"""
+        """ remove empty folders recursively to base folder """
         if not os.path.exists(leaf):
             folder = leaf
             while True:
@@ -232,10 +233,10 @@ class FileProcessing(object):
 
     def _read_fs(self):
         """ read paths from text file: one line with one path """
-        if not os.path.exists(self._path_list):
-            raise FileNotFoundError(f'WARNING: [{self._path_list}] not found!')
+        if not os.path.exists(self._input_path_list):
+            raise FileNotFoundError(f'WARNING: [{self._input_path_list}] not found!')
         fs = []
-        with open(self._path_list, 'r') as f:
+        with open(self._input_path_list, 'r') as f:
             lines = f.readlines()
             common_path = lines[0]
             for line in lines:
@@ -250,13 +251,18 @@ class FileProcessing(object):
                     common_path = self._get_common_path(path, common_path)
         return common_path, fs
 
+    @staticmethod
+    def api_change_format(path, out_format):
+        """ change format API """
+        return os.path.splitext(path)[0] + '.' + out_format
+
     def do(self, *args):
         """ do function will be implemented on files, please rewrite this method """
         pass
 
     def __call__(self):
         """ parallel processing on files in file system """
-        if self._path_list is None:
+        if self._input_path_list is None:
             fs = self._find_fs()
         else:
             self._input, fs = self._read_fs()
