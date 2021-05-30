@@ -65,11 +65,11 @@ class FileProcessing(object):
             self._logger_level = self._set_parser_value(ops, 'logger_level', 'info')
 
         # input controls
-        assert self._in_format is not None
+        assert self._in_format is not None and len(self._in_format) > 0
 
         # fix output
         self._output = [os.path.abspath(self._output) if self._output is not None else None][0]
-        # test mode: True: 1, False: 2 data flow
+        # single mode: True: 1, False: 2 data flow
         self._single_mode = self._output is None or self._out_format is None
         # pattern identifier
         self._pattern_identifier = '\\'
@@ -214,7 +214,7 @@ class FileProcessing(object):
             # if contains `pattern_identifier`, it is considered to be regular expression restrictions
             pattern = self._in_format[len(self._pattern_identifier):]
             fs = glob.glob(os.path.join(self._input, '**/*'), recursive=True)
-            fs = [x for x in fs if re.search(pattern, os.path.split(x)[-1]) is not None]
+            fs = [x for x in fs if os.path.isfile(x) and re.search(pattern, os.path.split(x)[-1]) is not None]
         else:
             fs = glob.glob(os.path.join(self._input, '**/*.' + self._in_format), recursive=True)
         return fs
@@ -245,7 +245,7 @@ class FileProcessing(object):
                     condition = re.search(pattern, os.path.split(path)[-1]) is not None
                 else:
                     condition = path.endswith('.' + self._in_format)
-                if os.path.exists(path) and condition:
+                if os.path.isfile(path) and condition:
                     fs.append(path)
                     common_path = self._get_common_path(path, common_path)
         return common_path, fs
@@ -259,8 +259,7 @@ class FileProcessing(object):
         if self._path_list is None:
             fs = self._find_fs()
         else:
-            fs = self._read_fs()
-        fs = [x for x in fs if os.path.isfile(x)]
+            self._input, fs = self._read_fs()
         self._total_file_number = len(fs)
         if not self._total_file_number:
             print('WARNING: no file has been found!')
