@@ -176,7 +176,7 @@ class FileProcessing(object):
         """ prepare function for multiprocessing mapping """
         if not self._single_mode:
             # prepare output path
-            truncated_path = os.path.split(in_path)[0][len(self._input) + 1:]
+            truncated_path = os.path.dirname(in_path)[len(self._input) + 1:]
             out_folder = os.path.join(self._output, truncated_path)
             # make directories
             os.makedirs(out_folder, exist_ok=True)
