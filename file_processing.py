@@ -67,8 +67,10 @@ class FileProcessing(object):
         # input controls
         assert self._in_format is not None and len(self._in_format) > 0
 
-        # fix output
-        self._output = [os.path.abspath(self._output) if self._output is not None else None][0]
+        # fix input/output
+        self._input = self.fix_path(self._input)
+        self._input_path_list = self.fix_path(self._input_path_list)
+        self._output = self.fix_path(self._output)
         # single mode: True: 1, False: 2 data flow
         self._single_mode = self._output is None or self._out_format is None
         # pattern identifier
@@ -85,6 +87,13 @@ class FileProcessing(object):
         self._log_path = os.path.join(self._logger_folder,
                                       time.strftime(f'log_%Y%m%d%H%M%S', time.localtime(time.time())) + '.log')
         self._get_logger()
+
+    @staticmethod
+    def fix_path(path):
+        if path is None:
+            return None
+        else:
+            return os.path.abspath(path)
 
     @staticmethod
     def _cpu_count(cpu):
