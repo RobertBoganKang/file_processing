@@ -165,10 +165,19 @@ class FileProcessing(object):
             shutil.rmtree(target_folder)
 
     @staticmethod
-    def _remove_empty_file(target_file):
-        """ if target file is empty, then remove it """
-        if os.path.exists(target_file) and os.path.getsize(target_file) == 0:
-            os.remove(target_file)
+    def _remove_empty_file(target_file_or_folder):
+        """ if target file is empty, then remove it (or find within folder) """
+
+        def rm_0_file(path):
+            if os.path.isfile(path) and os.path.getsize(path) == 0:
+                os.remove(path)
+
+        if os.path.isfile(target_file_or_folder):
+            rm_0_file(target_file_or_folder)
+        elif os.path.isdir(target_file_or_folder):
+            fs = glob.glob(os.path.join(target_file_or_folder, '**/*'), recursive=True)
+            for f in fs:
+                rm_0_file(f)
 
     @staticmethod
     def _simplify_path(base, leaf):
@@ -308,7 +317,5 @@ class FileProcessing(object):
                 self._empty_file_counter / self._total_file_number >= self._stop_each_file_cleaning_ratio):
             self._remove_empty_folder(self._output)
         # remove empty logs
-        log_files = glob.glob(os.path.join(self._logger_folder, '*'))
-        for log in log_files:
-            self._remove_empty_file(log)
+        self._remove_empty_file(self._logger_folder)
         self._remove_empty_folder(self._logger_folder)
