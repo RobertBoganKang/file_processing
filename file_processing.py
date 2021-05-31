@@ -74,9 +74,11 @@ class FileProcessing(object):
         # single mode: True: 1, False: 2 data flow
         self._single_mode = self._output is None or self._out_format is None
         # pattern identifier
-        self._pattern_identifier = '\\'
+        self._re_pattern_identifier = '\\'
+        self._glob_pattern_identifier = '^'
         # is pattern: regular expression
-        self._is_pattern = self._in_format.startswith(self._pattern_identifier)
+        self._is_re_pattern = self._in_format.startswith(self._re_pattern_identifier)
+        self._is_glob_pattern = self._in_format.startswith(self._glob_pattern_identifier)
         # empty folder counter
         self._empty_file_counter = 0
         self._total_file_number = None
@@ -212,7 +214,7 @@ class FileProcessing(object):
         if not self._single_mode:
             in_path, out_folder = args[0], args[1]
             out_name = os.path.split(in_path)[1]
-            if self._is_pattern:
+            if self._is_re_pattern:
                 out_path = os.path.join(out_folder, out_name)
             else:
                 # if not pattern, truncated the format and add a new one
@@ -229,13 +231,18 @@ class FileProcessing(object):
     def _find_fs(self):
         """ find files from glob function """
         # find all patterns from regular expression
-        if self._is_pattern:
+        if self._is_re_pattern:
             # if contains `pattern_identifier`, it is considered to be regular expression restrictions
-            pattern = self._in_format[len(self._pattern_identifier):]
+            pattern = self._in_format[len(self._re_pattern_identifier):]
             fs = glob.glob(os.path.join(self._input, '**/*'), recursive=True)
             fs = [x for x in fs if os.path.isfile(x) and re.search(pattern, os.path.split(x)[-1]) is not None]
+        elif self._is_glob_pattern:
+            pattern = self._in_format[len(self._glob_pattern_identifier):]
+            fs = glob.glob(os.path.join(self._input, '**/' + pattern), recursive=True)
+            fs = [x for x in fs if os.path.isfile(x)]
         else:
             fs = glob.glob(os.path.join(self._input, '**/*.' + self._in_format), recursive=True)
+            fs = [x for x in fs if os.path.isfile(x)]
         return fs
 
     @staticmethod
@@ -259,8 +266,8 @@ class FileProcessing(object):
             common_path = lines[0]
             for line in lines:
                 path = os.path.abspath(line.strip())
-                if self._is_pattern:
-                    pattern = self._in_format[len(self._pattern_identifier):]
+                if self._is_re_pattern:
+                    pattern = self._in_format[len(self._re_pattern_identifier):]
                     condition = re.search(pattern, os.path.split(path)[-1]) is not None
                 else:
                     condition = path.endswith('.' + self._in_format)

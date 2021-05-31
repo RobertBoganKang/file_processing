@@ -17,7 +17,8 @@ If `output` or `out_format` is `None`, it is consider to be target folder operat
 * Inputs:
   * `input`: input folder to do operation; or `input_path_list`: use a text file which stores paths instead of finding file paths;
   * `in_format`: format to search to do operation (for file processing); 
-    * if starts with `\\` letter, the file name will follow a Regular Expression;
+    * if starts with `\`, the file name will follow a `Regular Expression` restriction;
+    * if starts with `^`, the search will follow `glob` restriction;
 #### Optional Parameters:
 
 * Outputs (for `io` data flow):
