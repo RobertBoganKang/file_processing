@@ -48,7 +48,7 @@ class FileProcessing(object):
     def __init__(self, ops):
         super().__init__()
         if isinstance(ops, dict):
-            self._input = os.path.abspath(ops['input'])
+            self._input = self._set_parser_value(ops, 'input', None, is_dict=True)
             self._output = self._set_parser_value(ops, 'output', None, is_dict=True)
             self._in_format = self._set_parser_value(ops, 'in_format', '\\', is_dict=True)
             self._out_format = self._set_parser_value(ops, 'out_format', None, is_dict=True)
@@ -56,7 +56,7 @@ class FileProcessing(object):
             self._cpu = self._set_parser_value(ops, 'cpu_number', 0, is_dict=True)
             self._logger_level = self._set_parser_value(ops, 'logger_level', 'info', is_dict=True)
         else:
-            self._input = os.path.abspath(ops.input)
+            self._input = self._set_parser_value(ops, 'input', None, is_dict=True)
             self._output = self._set_parser_value(ops, 'output', None)
             self._in_format = self._set_parser_value(ops, 'in_format', '\\')
             self._out_format = self._set_parser_value(ops, 'out_format', None)
@@ -132,7 +132,7 @@ class FileProcessing(object):
         elif self._logger_level.lower() == 'debug':
             self.logger.setLevel(logging.DEBUG)
         else:
-            raise ValueError('WARNING: `logger_level` parameter ERROR.')
+            raise ValueError('ERROR: `logger_level` parameter ERROR.')
         # create handler
         fh = logging.FileHandler(self._log_path, encoding='utf-8')
         fh.setLevel(logging.DEBUG)
@@ -234,7 +234,7 @@ class FileProcessing(object):
     def _read_fs(self):
         """ read paths from text file: one line with one path """
         if not os.path.exists(self._input_path_list):
-            raise FileNotFoundError(f'WARNING: [{self._input_path_list}] not found!')
+            raise FileNotFoundError(f'ERROR: [{self._input_path_list}] not found!')
         fs = []
         with open(self._input_path_list, 'r') as f:
             lines = f.readlines()
@@ -262,14 +262,15 @@ class FileProcessing(object):
 
     def __call__(self):
         """ parallel processing on files in file system """
-        if self._input_path_list is None:
+        if self._input_path_list is not None:
+            self._input, fs = self._read_fs()
+        elif self._input is not None:
             fs = self._find_fs()
         else:
-            self._input, fs = self._read_fs()
+            raise ValueError('ERROR: input not given, `input` or `input_path_list` is required!')
         self._total_file_number = len(fs)
         if not self._total_file_number:
-            print('WARNING: no file has been found!')
-            return
+            raise FileNotFoundError('ERROR: no file has been found!')
 
         if self._cpu != 1:
             pool = mp.Pool(self._cpu_count(self._cpu))
