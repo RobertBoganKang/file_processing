@@ -75,9 +75,8 @@ class FileProcessing(object):
         self._single_mode = self._output is None or self._out_format is None
         # pattern identifier
         self._re_pattern_identifier = '\\'
-        self._glob_pattern_identifier = '^'
-        # is pattern: regular expression
         self._is_re_pattern = self._in_format.startswith(self._re_pattern_identifier)
+        self._glob_pattern_identifier = '^'
         self._is_glob_pattern = self._in_format.startswith(self._glob_pattern_identifier)
         # empty folder counter
         self._empty_file_counter = 0
