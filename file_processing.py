@@ -56,7 +56,7 @@ class FileProcessing(object):
             self._cpu = self._set_parser_value(ops, 'cpu_number', 0, is_dict=True)
             self._logger_level = self._set_parser_value(ops, 'logger_level', 'info', is_dict=True)
         else:
-            self._input = self._set_parser_value(ops, 'input', None, is_dict=True)
+            self._input = self._set_parser_value(ops, 'input', None)
             self._output = self._set_parser_value(ops, 'output', None)
             self._in_format = self._set_parser_value(ops, 'in_format', '\\')
             self._out_format = self._set_parser_value(ops, 'out_format', None)
@@ -307,6 +307,8 @@ class FileProcessing(object):
         if not self._single_mode and (
                 self._empty_file_counter / self._total_file_number >= self._stop_each_file_cleaning_ratio):
             self._remove_empty_folder(self._output)
-        # remove empty log
-        self._remove_empty_file(self._log_path)
+        # remove empty logs
+        log_files = glob.glob(os.path.join(self._logger_folder, '*'))
+        for log in log_files:
+            self._remove_empty_file(log)
         self._remove_empty_folder(self._logger_folder)
