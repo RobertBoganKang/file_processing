@@ -199,7 +199,7 @@ class FileProcessing(object):
                     else:
                         break
                 except Exception:
-                    pass
+                    break
 
     def _do_multiple_helper(self, in_path):
         """ prepare function for multiprocessing mapping """
