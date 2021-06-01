@@ -196,6 +196,8 @@ class FileProcessing(object):
                 try:
                     if os.path.exists(folder) and not os.listdir(folder):
                         shutil.rmtree(folder)
+                    else:
+                        break
                 except Exception:
                     pass
 
