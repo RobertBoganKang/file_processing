@@ -15,7 +15,7 @@ Build a `dict` with all required parameters below, and pass into the class.
 If `output` or `out_format` is `None`, it is consider to be target folder operation, else the data is from `input` to `output`.
 #### Required Parameters:
 * Inputs:
-  * `input`: input folder to do operation; or `input_path_list`: use a text file which stores paths instead of finding file paths;
+  * `input`: a folder to do operation, or a text file which stores paths instead of finding file paths;
   * `in_format`: format to search to do operation (for file processing); 
     * if starts with `\`, the file name will follow a `Regular Expression` restriction;
     * if starts with `^`, the search will follow `glob` restriction;
