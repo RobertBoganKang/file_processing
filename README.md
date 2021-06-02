@@ -2,17 +2,19 @@
 ## Introduction
 This default process is to recursively find the targeted file with given input format, and do operation to the new output path with output format.
 
-The class will do everything for you in behind with parallel computing power (multiple-core CPU).
+The class will process files with parallel computing power (multiple-core CPU).
 ## Usage
 ### Code-wise Operation
+
+The file `template.py` can be referred. Modify it with your function.
+
 #### Usage 1 (`argparse`)
 Then, inherit the class, and pass required parameters through `argparse` into the class.
 
-The file `template.py` can be referred. Modify it with your function.
 #### Usage 2 (`dict`)
-Build a `dict` with all required parameters below, and pass into the class.
+Build a `dict` with few required parameters below, and pass into the class.
 
-If `output` or `out_format` is `None`, it is consider to be target folder operation, else the data is from `input` to `output`.
+If `output` or `out_format` is `None`, it is consider to be target file `input` operation, else the data is from `input` to `output`.
 #### Required Parameters:
 * Inputs:
   * `input`: a folder to do operation, or a text file which stores paths instead of finding file paths;
@@ -25,7 +27,10 @@ If `output` or `out_format` is `None`, it is consider to be target folder operat
   * `output`: output folder to export something with the same file system structures (for `io`);
   * `out_format`: the export file format (for file processing); `?` is the same pattern as input (for `io`);
 * `cpu_number`: the number of CPU to process;
-* `logger_level`: defines the level of logger to print, `self.logger` is logger parameter to use; if `None`: no log file generated;
+* `logger_level`: defines the level of logger to print;
+  * if `None`: no log file generated; 
+  * `self.logger` is logger parameter to use; 
+  * WARNING: it is easy to break when `cpu > 1`;
 
 #### Overwrite Function
 Function `do`:
