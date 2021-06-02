@@ -49,7 +49,6 @@ class FileProcessing(object):
         super().__init__()
         if isinstance(ops, dict):
             self._input = self._set_parser_value(ops, 'input', None, is_dict=True)
-            self._input_path_list = self._set_parser_value(ops, 'input_path_list', None, is_dict=True)
             self._in_format = self._set_parser_value(ops, 'in_format', '\\', is_dict=True)
             self._output = self._set_parser_value(ops, 'output', None, is_dict=True)
             self._out_format = self._set_parser_value(ops, 'out_format', None, is_dict=True)
@@ -57,7 +56,6 @@ class FileProcessing(object):
             self._logger_level = self._set_parser_value(ops, 'logger_level', None, is_dict=True)
         else:
             self._input = self._set_parser_value(ops, 'input', None)
-            self._input_path_list = self._set_parser_value(ops, 'input_path_list', None)
             self._in_format = self._set_parser_value(ops, 'in_format', '\\')
             self._output = self._set_parser_value(ops, 'output', None)
             self._out_format = self._set_parser_value(ops, 'out_format', None)
@@ -66,10 +64,11 @@ class FileProcessing(object):
 
         # input controls
         assert self._in_format is not None and len(self._in_format) > 0
+        if not os.path.exists(self._input):
+            raise FileNotFoundError(f'ERROR: [{self._input}] not found!')
 
         # fix input/output
         self._input = self._fix_path(self._input)
-        self._input_path_list = self._fix_path(self._input_path_list)
         self._output = self._fix_path(self._output)
         # single mode: True: 1, False: 2 data flow
         self._single_mode = self._output is None or self._out_format is None
@@ -266,10 +265,8 @@ class FileProcessing(object):
 
     def _read_fs(self):
         """ read paths from text file: one line with one path """
-        if not os.path.exists(self._input_path_list):
-            raise FileNotFoundError(f'ERROR: [{self._input_path_list}] not found!')
         fs = []
-        with open(self._input_path_list, 'r') as f:
+        with open(self._input, 'r') as f:
             lines = f.readlines()
             common_path = lines[0]
             for line in lines:
@@ -295,12 +292,12 @@ class FileProcessing(object):
 
     def __call__(self):
         """ parallel processing on files in file system """
-        if self._input_path_list is not None:
+        if os.path.isfile(self._input):
             self._input, fs = self._read_fs()
-        elif self._input is not None:
+        elif os.path.isdir(self._input):
             fs = self._find_fs()
         else:
-            raise ValueError('ERROR: input not given, `input` or `input_path_list` is required!')
+            raise ValueError('ERROR: input not given, `input` as a file/directory is required!')
         self._total_file_number = len(fs)
         if not self._total_file_number:
             raise FileNotFoundError('ERROR: no file has been found!')
