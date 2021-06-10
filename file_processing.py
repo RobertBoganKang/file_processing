@@ -62,11 +62,11 @@ class FileProcessing(object):
             self.cpu = self._set_parser_value(ops, 'cpu_number', 0)
             self.logger_level = self._set_parser_value(ops, 'logger_level', None)
 
+    def _initialize_parameters(self):
         # input controls
         assert self.in_format is not None and len(self.in_format) > 0
         if not os.path.exists(self.input):
             raise FileNotFoundError(f'ERROR: [{self.input}] not found!')
-
         # fix input/output
         self.input = self._fix_path(self.input)
         self.output = self._fix_path(self.output)
@@ -292,6 +292,9 @@ class FileProcessing(object):
 
     def __call__(self):
         """ parallel processing on files in file system """
+        # initialize parameter
+        self._initialize_parameters()
+        # main
         if os.path.isfile(self.input):
             self.input, fs = self._read_fs()
         elif os.path.isdir(self.input):
