@@ -47,20 +47,12 @@ class FileProcessing(object):
 
     def __init__(self, ops):
         super().__init__()
-        if isinstance(ops, dict):
-            self.input = self._set_parser_value(ops, 'input', None, is_dict=True)
-            self.in_format = self._set_parser_value(ops, 'in_format', '\\', is_dict=True)
-            self.output = self._set_parser_value(ops, 'output', None, is_dict=True)
-            self.out_format = self._set_parser_value(ops, 'out_format', None, is_dict=True)
-            self.cpu = self._set_parser_value(ops, 'cpu_number', 0, is_dict=True)
-            self.logger_level = self._set_parser_value(ops, 'logger_level', None, is_dict=True)
-        else:
-            self.input = self._set_parser_value(ops, 'input', None)
-            self.in_format = self._set_parser_value(ops, 'in_format', '\\')
-            self.output = self._set_parser_value(ops, 'output', None)
-            self.out_format = self._set_parser_value(ops, 'out_format', None)
-            self.cpu = self._set_parser_value(ops, 'cpu_number', 0)
-            self.logger_level = self._set_parser_value(ops, 'logger_level', None)
+        self.input = self._set_parser_value(ops, 'input', None)
+        self.in_format = self._set_parser_value(ops, 'in_format', '\\')
+        self.output = self._set_parser_value(ops, 'output', None)
+        self.out_format = self._set_parser_value(ops, 'out_format', None)
+        self.cpu = self._set_parser_value(ops, 'cpu_number', 0)
+        self.logger_level = self._set_parser_value(ops, 'logger_level', None)
 
     def _initialize_parameters(self):
         # input controls
@@ -113,11 +105,11 @@ class FileProcessing(object):
             return 1
 
     @staticmethod
-    def _set_parser_value(ops, parser_name, default_value, is_dict=False):
+    def _set_parser_value(ops, parser_name, default_value):
         """ set parser value to default if needed """
         value = None
         if parser_name in ops:
-            if is_dict:
+            if isinstance(ops, dict):
                 value = ops[parser_name]
             else:
                 value = eval('ops.' + parser_name)
