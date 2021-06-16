@@ -56,7 +56,7 @@ class FileProcessing(object):
 
     def _initialize_parameters(self):
         # input controls
-        assert self.input is not None and self.in_format is not None
+        assert self.input is not None and self.in_format is not None and len(self.in_format) > 0
         if not os.path.exists(self.input):
             raise FileNotFoundError(f'ERROR: input [{self.input}] not found!')
         # fix input/output
@@ -220,9 +220,10 @@ class FileProcessing(object):
             if self._is_re_pattern or self._is_glob_pattern:
                 out_name = os.path.splitext(out_name)[0]
                 if self.out_format != '':
-                    out_name += ('.' + self.out_format)
+                    out_name += '.'
             else:
-                out_name = out_name[:-len(self.in_format)] + self.out_format
+                out_name = out_name[:-len(self.in_format)]
+            out_name += self.out_format
             out_path = os.path.join(out_folder, out_name)
             # the 'do' function is main function for batch process
             self.do(in_path, out_path)
