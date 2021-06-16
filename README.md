@@ -17,17 +17,22 @@ Build a `dict` with few required parameters below, and pass into the class.
 If `output` or `out_format` is `None`, it is consider to be target file `input` operation, else the data is from `input` to `output`.
 #### Required Parameters:
 * Inputs:
-  * `input`: a folder to do operation, or a text file which stores paths instead of finding file paths;
+  * `input`: 
+    * a folder to do operation;
+    * a file to process once (with same input format);
+    * a text file which stores paths instead of finding file paths (with different input format);
   * `in_format`: format to search to do operation (for file processing); 
     * if starts with `\`, the file name will follow a `Regular Expression` restriction;
     * if starts with `^`, the search will follow `glob` restriction;
 #### Optional Parameters:
 
 * Outputs (for `io` data flow):
-  * `output`: output folder to export something with the same file system structures (for `io`);
-  * `out_format`: the export file format (for file processing); `?` is the same pattern as input (for `io`);
+  * `output` (for `io`):
+    * output folder to export something with the same file system structures;
+    * a file to process once (with same output format);
+  * `out_format`: the export file format (for file processing);
 * `cpu_number`: the number of CPU to process;
-* `logger_level`: defines the level of logger to print;
+* `logger_level`: defines the level of logger to print (`debug`, `info`, `warn`, `error`, `fatal`);
   * if `None`: no log file generated; 
   * `self.logger` is logger parameter to use; 
   * WARNING: it is easy to break when `cpu > 1`;

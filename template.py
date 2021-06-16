@@ -38,9 +38,10 @@ class Template(FileProcessing):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='xxx xxx xxx')
     fp_group = parser.add_argument_group('file processing arguments')
-    fp_group.add_argument('--input', '-i', help='the input folder, or a text file for paths', type=str, default='in')
+    fp_group.add_argument('--input', '-i', help='the input folder/file, or a text file for paths', type=str,
+                          default='in')
     fp_group.add_argument('--in_format', '-if', type=str, help='the input format', default='xxx')
-    fp_group.add_argument('--output', '-o', help='the output folder', type=str, default='out')
+    fp_group.add_argument('--output', '-o', help='the output folder/file', type=str, default='out')
     fp_group.add_argument('--out_format', '-of', type=str, help='the output format', default='yyy')
     fp_group.add_argument('--cpu_number', '-j', type=int, help='cpu number of processing', default=0)
     fp_group.add_argument('--logger_level', '-log', type=str,
