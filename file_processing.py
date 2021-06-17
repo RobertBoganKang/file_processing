@@ -261,6 +261,15 @@ class FileProcessing(object):
                 break
         return path_a[:i]
 
+    def _check_input_file_path(self, in_path):
+        """ check file that match the input format """
+        if self._is_re_pattern:
+            pattern = self.in_format[len(self._re_pattern_identifier):]
+            condition = re.search(pattern, os.path.split(in_path)[-1]) is not None
+        else:
+            condition = in_path.endswith('.' + self.in_format)
+        return condition
+
     def _read_fs(self):
         """
         read paths from text file: one line with one path
@@ -272,17 +281,13 @@ class FileProcessing(object):
             common_path = lines[0]
             for line in lines:
                 path = os.path.abspath(line.strip())
-                if self._is_re_pattern:
-                    pattern = self.in_format[len(self._re_pattern_identifier):]
-                    condition = re.search(pattern, os.path.split(path)[-1]) is not None
-                else:
-                    condition = path.endswith('.' + self.in_format)
+                condition = self._check_input_file_path(path)
                 if os.path.isfile(path) and condition:
                     fs.append(path)
                     common_path = self._get_common_path(path, common_path)
         return common_path, fs
 
-    def _process_once(self):
+    def _do_once(self):
         """
         process once if:
         --> input format == `in_format`
@@ -309,12 +314,13 @@ class FileProcessing(object):
         self._initialize_parameters()
         # main
         if os.path.isfile(self.input):
-            # if different format: consider it as paths text file
-            if not self.input.endswith(self.in_format):
+            # if not meet input format requirement: consider it as paths text file
+            condition = self._check_input_file_path(self.input)
+            if not condition:
                 self.input, fs = self._read_fs()
             # else: single process
             else:
-                self._process_once()
+                self._do_once()
                 return
         elif os.path.isdir(self.input):
             fs = self._find_fs()
