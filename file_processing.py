@@ -158,7 +158,7 @@ class FileProcessing(object):
                     path = os.path.join(root, name)
                     shutil.rmtree(path)
         # remove root
-        if not os.listdir(target_folder):
+        if os.path.isdir(target_folder) and not os.listdir(target_folder):
             shutil.rmtree(target_folder)
 
     @staticmethod
