@@ -1,8 +1,8 @@
 import functools
-import glob
 import logging
 import multiprocessing as mp
 import os
+import pathlib
 import re
 import shutil
 import signal
@@ -149,6 +149,13 @@ class FileProcessing(object):
         return logger
 
     @staticmethod
+    def _glob_files(base_folder, pattern):
+        fs = []
+        for file in pathlib.Path(base_folder).glob(pattern):
+            fs.append(str(file))
+        return fs
+
+    @staticmethod
     def _remove_empty_folder(target_folder):
         """ if target folder is empty, then remove it """
         for root, dirs, files in os.walk(target_folder, topdown=False):
@@ -161,8 +168,7 @@ class FileProcessing(object):
         if os.path.isdir(target_folder) and not os.listdir(target_folder):
             shutil.rmtree(target_folder)
 
-    @staticmethod
-    def _remove_empty_file(target_file_or_folder):
+    def _remove_empty_file(self, target_file_or_folder):
         """ if target file is empty, then remove it (or find within folder) """
 
         def rm_0_file(path):
@@ -172,7 +178,7 @@ class FileProcessing(object):
         if os.path.isfile(target_file_or_folder):
             rm_0_file(target_file_or_folder)
         elif os.path.isdir(target_file_or_folder):
-            fs = glob.glob(os.path.join(target_file_or_folder, '**/*'), recursive=True)
+            fs = self._glob_files(target_file_or_folder, '**/*')
             for f in fs:
                 rm_0_file(f)
 
@@ -239,14 +245,14 @@ class FileProcessing(object):
         if self._is_re_pattern:
             # if contains `pattern_identifier`, it is considered to be regular expression restrictions
             pattern = self.in_format[len(self._re_pattern_identifier):]
-            fs = glob.glob(os.path.join(self.input, '**/*'), recursive=True)
+            fs = self._glob_files(self.input, '**/*')
             fs = [x for x in fs if os.path.isfile(x) and re.search(pattern, os.path.split(x)[-1]) is not None]
         elif self._is_glob_pattern:
             pattern = self.in_format[len(self._glob_pattern_identifier):]
-            fs = glob.glob(os.path.join(self.input, '**/' + pattern), recursive=True)
+            fs = self._glob_files(self.input, '**/' + pattern)
             fs = [x for x in fs if os.path.isfile(x)]
         else:
-            fs = glob.glob(os.path.join(self.input, '**/*.' + self.in_format), recursive=True)
+            fs = self._glob_files(self.input, '**/' + '**/*.' + self.in_format)
             fs = [x for x in fs if os.path.isfile(x)]
         return fs
 
