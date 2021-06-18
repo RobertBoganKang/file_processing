@@ -58,7 +58,7 @@ class FileProcessing(object):
         # input controls
         assert self.input is not None and self.in_format is not None and len(self.in_format) > 0
         if not os.path.exists(self.input):
-            raise FileNotFoundError(f'ERROR: input [{self.input}] not found!')
+            raise FileNotFoundError(f'ERROR: input `{self.input}` not found!')
         # fix input/output
         self.input = self._fix_path(self.input)
         self.output = self._fix_path(self.output)
