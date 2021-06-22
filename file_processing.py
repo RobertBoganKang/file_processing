@@ -348,7 +348,7 @@ class FileProcessing(object):
                         self._empty_file_counter / self._total_file_number < self._stop_each_file_cleaning_ratio):
                     self._simplify_path(self.output, out_path)
 
-        with tqdm(total=len(fs)) as p_bar:
+        with tqdm(total=len(fs), dynamic_ncols=True) as p_bar:
             if self.cpu != 1:
                 pool = mp.Pool(self._cpu_count(self.cpu))
 
