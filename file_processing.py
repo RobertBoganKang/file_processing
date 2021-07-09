@@ -225,10 +225,10 @@ class FileProcessing(object):
             # truncated the format and add a new one
             if self._is_re_pattern or self._is_glob_pattern:
                 out_name = os.path.splitext(out_name)[0]
-                if self.out_format != '':
-                    out_name += '.'
             else:
-                out_name = out_name[:-len(self.in_format)]
+                out_name = out_name[:-len(self.in_format) - 1]
+            if self.out_format != '':
+                out_name += '.'
             out_name += self.out_format
             out_path = os.path.join(out_folder, out_name)
             # the 'do' function is main function for batch process
