@@ -15,7 +15,7 @@ class Template(FileProcessing):
     # in_path --> out_path; data flow
     def do(self, in_path, out_path):
         """
-        implement this method
+        implement this method for main operation
         """
         pass
 
@@ -25,6 +25,16 @@ class Template(FileProcessing):
     #    implement this method
     #    """
     #    pass
+
+    def callback(self, in_path, out_path):
+        """
+        (optional) implement this method for callback operation
+        input:
+            * None;
+            * 1 argument: combined input;
+            * arguments same as function `do`;
+        """
+        pass
 
 
 if __name__ == '__main__':

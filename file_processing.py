@@ -7,6 +7,7 @@ import re
 import shutil
 import signal
 import time
+from inspect import signature
 
 from tqdm import tqdm
 
@@ -83,6 +84,9 @@ class FileProcessing(object):
                                           time.strftime(f'log_%Y%m%d%H%M%S', time.localtime(time.time())) + '.log')
 
             self.logger = self._get_logger()
+        # callback number of inputs
+        self._callback_input_length = len(signature(self.callback).parameters)
+        self._callback_do_input_length = len(signature(self.do).parameters)
 
     @staticmethod
     def _fix_path(path):
@@ -211,9 +215,10 @@ class FileProcessing(object):
             os.makedirs(out_folder, exist_ok=True)
             # do operation
             out_path = self._do_single(in_path, out_folder)
-            return out_path
+            return in_path, out_path
         else:
             self._do_single(in_path)
+            return in_path
 
     def _do_single(self, *args):
         """ single process """
@@ -238,6 +243,7 @@ class FileProcessing(object):
         else:
             in_path = args[0]
             self.do(in_path)
+            return in_path
 
     def _find_fs(self):
         """ find files from glob function """
@@ -314,6 +320,12 @@ class FileProcessing(object):
         """
         pass
 
+    def callback(self, *args):
+        """
+        define custom callback function.
+        """
+        pass
+
     def __call__(self):
         """ parallel processing on files in file system """
         # initialize parameter
@@ -337,15 +349,25 @@ class FileProcessing(object):
         if not self._total_file_number:
             raise FileNotFoundError('ERROR: no file has been found!')
 
-        def _callback_function(out_path):
+        def _callback_function(args):
             # update p_bar
             p_bar.update()
+            # custom callback function
+            if self._callback_input_length == 0:
+                self.callback()
+            elif self._callback_input_length == 1:
+                self.callback(args)
+            elif self._callback_input_length == self._callback_do_input_length:
+                self.callback(*args)
+            else:
+                raise AttributeError(f'ERROR: number of inputs for callback not matched '
+                                     f'({self._callback_input_length}!={self._callback_do_input_length})!')
             # clean file path if few situation happen
             if not self._single_mode:
+                in_path, out_path = args
                 if not os.path.exists(out_path):
                     self._empty_file_counter += 1
-                if not self._single_mode and (
-                        self._empty_file_counter / self._total_file_number < self._stop_each_file_cleaning_ratio):
+                if self._empty_file_counter / self._total_file_number < self._stop_each_file_cleaning_ratio:
                     self._simplify_path(self.output, out_path)
 
         with tqdm(total=len(fs), dynamic_ncols=True) as p_bar:
@@ -360,7 +382,7 @@ class FileProcessing(object):
             else:
                 for f in fs:
                     result = self._do_multiple(f)
-                    _callback_function(result)
+                    _callback_function(*result)
 
         # clean output folder
         if not self._single_mode and (
