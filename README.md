@@ -13,7 +13,11 @@ Then, inherit the class, and pass required parameters through `argparse` into th
 Build a `dict` with few required parameters below, and pass into the class.
 
 If `output` or `out_format` is `None`, it is consider to be target file `input` operation, else the data is from `input` to `output`.
-### Required Parameters:
+
+### Parameters
+
+#### Required
+
 * Inputs:
   * `input`: 
     * a folder to do operation;
@@ -22,7 +26,7 @@ If `output` or `out_format` is `None`, it is consider to be target file `input` 
   * `in_format`: format to search to do operation (for file processing); 
     * if starts with `\`, the file name will follow a `Regular Expression` restriction;
     * if starts with `^`, the search will follow `glob` restriction;
-### Optional Parameters:
+#### Optional
 
 * Outputs (for `io` data flow):
   * `output` (for `io`):
