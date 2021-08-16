@@ -382,7 +382,7 @@ class FileProcessing(object):
             else:
                 for f in fs:
                     result = self._do_multiple(f)
-                    _callback_function(*result)
+                    _callback_function(result)
 
         # clean output folder
         if not self._single_mode and (
