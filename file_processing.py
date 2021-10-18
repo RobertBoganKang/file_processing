@@ -297,6 +297,16 @@ class FileProcessing(object):
                 if os.path.isfile(path) and condition:
                     fs.append(path)
                     common_path = self._get_common_path(path, common_path)
+        # tidy path
+        i = len(common_path) - 1
+        while i >= 0:
+            if common_path[i] in ['/', '\\']:
+                i += 1
+                break
+            i -= 1
+        common_path = common_path[:i]
+        if len(common_path) != 0:
+            common_path = os.path.abspath(common_path)
         return common_path, fs
 
     def _do_once(self):
