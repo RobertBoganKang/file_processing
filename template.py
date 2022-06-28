@@ -1,7 +1,13 @@
 import argparse
+import os
+import sys
 
-# https://github.com/RobertBoganKang/file_processing
-from file_processing import FileProcessing
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+try:
+    # https://github.com/RobertBoganKang/file_processing
+    from file_processing import FileProcessing
+except Exception:
+    raise ImportError('ERROR: cannot import!')
 
 
 class Template(FileProcessing):
