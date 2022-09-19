@@ -48,13 +48,12 @@ class FileProcessing(object):
 
     def __init__(self, ops):
         super().__init__()
-        self._ops = self._fix_ops(ops)
-        self.input = self._set_parser_value(self._ops, 'input', None)
-        self.in_format = self._set_parser_value(self._ops, 'in_format', '\\')
-        self.output = self._set_parser_value(self._ops, 'output', None)
-        self.out_format = self._set_parser_value(self._ops, 'out_format', None)
-        self.cpu = self._set_parser_value(self._ops, 'cpu_number', 0)
-        self.logger_level = self._set_parser_value(self._ops, 'logger_level', None)
+        self.input = self._set_parser_value(ops, 'input', None)
+        self.in_format = self._set_parser_value(ops, 'in_format', '\\')
+        self.output = self._set_parser_value(ops, 'output', None)
+        self.out_format = self._set_parser_value(ops, 'out_format', None)
+        self.cpu = self._set_parser_value(ops, 'cpu_number', 0)
+        self.logger_level = self._set_parser_value(ops, 'logger_level', None)
 
     def _initialize_parameters(self):
         # input controls
@@ -97,13 +96,6 @@ class FileProcessing(object):
             return os.path.abspath(path)
 
     @staticmethod
-    def _fix_ops(ops):
-        if isinstance(ops, dict):
-            return ops
-        else:
-            return ops.__dict__
-
-    @staticmethod
     def _cpu_count(cpu):
         """
         get the cpu number
@@ -122,6 +114,8 @@ class FileProcessing(object):
     @staticmethod
     def _set_parser_value(ops, parser_name, default_value):
         """ set parser value to default if needed """
+        if not isinstance(ops, dict):
+            ops = ops.__dict__
         if parser_name not in ops or ops[parser_name] is None:
             return default_value
         else:
