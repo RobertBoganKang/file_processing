@@ -55,6 +55,7 @@ class FileProcessing(object):
         self.fp_cpu = self._set_parser_value(ops, 'cpu_number', 0)
         self.fp_logger_level = self._set_parser_value(ops, 'logger_level', None)
         self.fp_paths = []
+        self._do_once_status = False
 
         # initialize parameter
         self._initialize_parameters()
@@ -172,7 +173,6 @@ class FileProcessing(object):
             # if not meet input format requirement: consider it as paths text file
             if not self._check_input_file_path(self.fp_input):
                 self.fp_input, self.fp_paths = self._read_fs()
-                self._do_once_status = False
             # else: single process
             else:
                 self._do_once_status = True
