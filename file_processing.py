@@ -62,6 +62,9 @@ class FileProcessing(object):
 
     def __call__(self):
         """ parallel processing on files in file system """
+        if self._do_once_status:
+            self._do_once()
+            return
         self._update_paths_len()
 
         def _callback_function(args):
@@ -169,10 +172,10 @@ class FileProcessing(object):
             # if not meet input format requirement: consider it as paths text file
             if not self._check_input_file_path(self.fp_input):
                 self.fp_input, self.fp_paths = self._read_fs()
+                self._do_once_status = False
             # else: single process
             else:
-                self.fp_paths = [self.fp_input]
-                self._do_once()
+                self._do_once_status = True
                 return
         elif os.path.isdir(self.fp_input):
             self.fp_paths = self._find_fs()
