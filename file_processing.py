@@ -119,6 +119,7 @@ class FileProcessing(object):
         assert self.fp_in_format == other_fp_obj.fp_in_format
         assert self.fp_out_format == other_fp_obj.fp_out_format
         self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) | set(other_fp_obj.fp_paths)))
+        self._update_paths_len()
         return self
 
     def __sub__(self, other_fp_obj):
@@ -126,6 +127,7 @@ class FileProcessing(object):
         assert self.fp_in_format == other_fp_obj.fp_in_format
         assert self.fp_out_format == other_fp_obj.fp_out_format
         self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) - set(other_fp_obj.fp_paths)))
+        self._update_paths_len()
         return self
 
     def _initialize_parameters(self):
@@ -169,6 +171,7 @@ class FileProcessing(object):
                 self.fp_input, self.fp_paths = self._read_fs()
             # else: single process
             else:
+                self.fp_paths = [self.fp_input]
                 self._do_once()
                 return
         elif os.path.isdir(self.fp_input):
