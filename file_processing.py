@@ -55,7 +55,6 @@ class FileProcessing(object):
         self.fp_cpu = self._set_parser_value(ops, 'cpu_number', 0)
         self.fp_logger_level = self._set_parser_value(ops, 'logger_level', None)
         self.fp_paths = []
-        self._do_once_status = False
 
         # initialize parameter
         self._initialize_parameters()
@@ -166,6 +165,8 @@ class FileProcessing(object):
         # callback number of inputs
         self._callback_input_length = len(signature(self.callback).parameters)
         self._callback_do_input_length = len(signature(self.do).parameters)
+        # initialize other parameters
+        self._do_once_status = False
 
     def _initialize_paths(self):
         # main
