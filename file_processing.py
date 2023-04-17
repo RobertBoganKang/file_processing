@@ -48,37 +48,110 @@ class FileProcessing(object):
 
     def __init__(self, ops):
         super().__init__()
-        self.input = self._set_parser_value(ops, 'input', None)
-        self.in_format = self._set_parser_value(ops, 'in_format', '\\')
-        self.output = self._set_parser_value(ops, 'output', None)
-        self.out_format = self._set_parser_value(ops, 'out_format', None)
-        self.cpu = self._set_parser_value(ops, 'cpu_number', 0)
-        self.logger_level = self._set_parser_value(ops, 'logger_level', None)
+        self.fp_input = self._set_parser_value(ops, 'input', None)
+        self.fp_in_format = self._set_parser_value(ops, 'in_format', '\\')
+        self.fp_output = self._set_parser_value(ops, 'output', None)
+        self.fp_out_format = self._set_parser_value(ops, 'out_format', None)
+        self.fp_cpu = self._set_parser_value(ops, 'cpu_number', 0)
+        self.fp_logger_level = self._set_parser_value(ops, 'logger_level', None)
+        self.fp_paths = []
+
+        # initialize parameter
+        self._initialize_parameters()
+        self._initialize_paths()
+
+    def __call__(self):
+        """ parallel processing on files in file system """
+        self._update_paths_len()
+
+        def _callback_function(args):
+            # update p_bar
+            p_bar.update()
+            # custom callback function
+            if self._callback_input_length == 0:
+                self.callback()
+            elif self._callback_input_length == 1:
+                self.callback(args)
+            elif self._callback_input_length == self._callback_do_input_length:
+                self.callback(*args)
+            else:
+                raise AttributeError(f'ERROR: number of inputs for callback not matched '
+                                     f'({self._callback_input_length}!={self._callback_do_input_length})!')
+            # clean file path if few situation happen
+            if not self._single_mode:
+                in_path, out_path = args
+                if not os.path.exists(out_path):
+                    self._empty_file_counter += 1
+                if self._empty_file_counter / self._total_file_number < self._stop_each_file_cleaning_ratio:
+                    self._simplify_path(self.fp_output, out_path)
+
+        with tqdm(total=len(self.fp_paths), dynamic_ncols=True) as p_bar:
+            if self.fp_cpu != 1:
+                pool = mp.Pool(self._cpu_count(self.fp_cpu))
+
+                for f in self.fp_paths:
+                    pool.apply_async(self._do_multiple, args=(f,), callback=_callback_function)
+                # set multiprocessing within `tqdm` for process bar update
+                pool.close()
+                pool.join()
+            else:
+                for f in self.fp_paths:
+                    result = self._do_multiple(f)
+                    _callback_function(result)
+
+        # clean output folder
+        if not self._single_mode and (
+                self._empty_file_counter / self._total_file_number >= self._stop_each_file_cleaning_ratio):
+            self._remove_empty_folder(self.fp_output)
+        # remove empty logs
+        if self.fp_logger_level is not None:
+            self._remove_empty_file(self._logger_folder)
+            self._remove_empty_folder(self._logger_folder)
+
+    def __len__(self):
+        return len(self.fp_paths)
+
+    def __getitem__(self, item):
+        return self.fp_paths[item]
+
+    def __add__(self, other_fp_obj):
+        # format should match
+        assert self.fp_in_format == other_fp_obj.fp_in_format
+        assert self.fp_out_format == other_fp_obj.fp_out_format
+        self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) | set(other_fp_obj.fp_paths)))
+        return self
+
+    def __sub__(self, other_fp_obj):
+        # format should match
+        assert self.fp_in_format == other_fp_obj.fp_in_format
+        assert self.fp_out_format == other_fp_obj.fp_out_format
+        self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) - set(other_fp_obj.fp_paths)))
+        return self
 
     def _initialize_parameters(self):
         # input controls
-        assert self.input is not None and self.in_format is not None and len(self.in_format) > 0
-        if not os.path.exists(self.input):
-            raise FileNotFoundError(f'ERROR: input `{self.input}` not found!')
+        assert self.fp_input is not None and self.fp_in_format is not None and len(self.fp_in_format) > 0
+        if not os.path.exists(self.fp_input):
+            raise FileNotFoundError(f'ERROR: input `{self.fp_input}` not found!')
         # fix input/output
-        self.input = self._fix_path(self.input)
-        self.output = self._fix_path(self.output)
+        self.fp_input = self._fix_path(self.fp_input)
+        self.fp_output = self._fix_path(self.fp_output)
         self.file_encoding = 'utf-8'
         # single mode: True: 1, False: 2 data flow
-        self._single_mode = self.output is None
-        if not self._single_mode and self.out_format is None:
-            self.out_format = ''
+        self._single_mode = self.fp_output is None
+        if not self._single_mode and self.fp_out_format is None:
+            self.fp_out_format = ''
         # pattern identifier
         self._re_pattern_identifier = '\\'
-        self._is_re_pattern = self.in_format.startswith(self._re_pattern_identifier)
+        self._is_re_pattern = self.fp_in_format.startswith(self._re_pattern_identifier)
         self._glob_pattern_identifier = '^'
-        self._is_glob_pattern = self.in_format.startswith(self._glob_pattern_identifier)
+        self._is_glob_pattern = self.fp_in_format.startswith(self._glob_pattern_identifier)
         # empty folder counter
         self._empty_file_counter = 0
         self._total_file_number = None
         self._stop_each_file_cleaning_ratio = 0.1
         # logger (easy to break in multiprocessing)
-        if self.logger_level is not None:
+        if self.fp_logger_level is not None:
             self._logger_folder = 'log'
             self._log_path = os.path.join(self._logger_folder,
                                           time.strftime(f'log_%Y%m%d%H%M%S', time.localtime(time.time())) + '.log')
@@ -87,6 +160,28 @@ class FileProcessing(object):
         # callback number of inputs
         self._callback_input_length = len(signature(self.callback).parameters)
         self._callback_do_input_length = len(signature(self.do).parameters)
+
+    def _initialize_paths(self):
+        # main
+        if os.path.isfile(self.fp_input):
+            # if not meet input format requirement: consider it as paths text file
+            if not self._check_input_file_path(self.fp_input):
+                self.fp_input, self.fp_paths = self._read_fs()
+            # else: single process
+            else:
+                self._do_once()
+                return
+        elif os.path.isdir(self.fp_input):
+            self.fp_paths = self._find_fs()
+        else:
+            raise ValueError('ERROR: input not given, `input` as a file/directory is required!')
+        self._update_paths_len()
+
+    def _update_paths_len(self):
+        # multiple process
+        self._total_file_number = len(self.fp_paths)
+        if not self._total_file_number:
+            raise FileNotFoundError('ERROR: no file has been found!')
 
     @staticmethod
     def _fix_path(path):
@@ -128,13 +223,13 @@ class FileProcessing(object):
 
         # create a logger
         logger = mp.get_logger()
-        if self.logger_level.lower() == 'info':
+        if self.fp_logger_level.lower() == 'info':
             logger.setLevel(logging.INFO)
-        elif self.logger_level.lower() == 'warning':
+        elif self.fp_logger_level.lower() == 'warning':
             logger.setLevel(logging.WARNING)
-        elif self.logger_level.lower() == 'error':
+        elif self.fp_logger_level.lower() == 'error':
             logger.setLevel(logging.ERROR)
-        elif self.logger_level.lower() == 'debug':
+        elif self.fp_logger_level.lower() == 'debug':
             logger.setLevel(logging.DEBUG)
         else:
             raise AttributeError('ERROR: `logger_level` parameter ERROR.')
@@ -205,8 +300,8 @@ class FileProcessing(object):
         """ prepare function for multiprocessing mapping """
         if not self._single_mode:
             # prepare output path
-            truncated_path = os.path.dirname(in_path)[len(self.input) + 1:]
-            out_folder = os.path.join(self.output, truncated_path)
+            truncated_path = os.path.dirname(in_path)[len(self.fp_input) + 1:]
+            out_folder = os.path.join(self.fp_output, truncated_path)
             # make directories
             os.makedirs(out_folder, exist_ok=True)
             # do operation
@@ -227,10 +322,10 @@ class FileProcessing(object):
             if self._is_re_pattern or self._is_glob_pattern:
                 out_name = os.path.splitext(out_name)[0]
             else:
-                out_name = out_name[:-len(self.in_format) - 1]
-            if self.out_format != '':
+                out_name = out_name[:-len(self.fp_in_format) - 1]
+            if self.fp_out_format != '':
                 out_name += '.'
-            out_name += self.out_format
+            out_name += self.fp_out_format
             out_path = os.path.join(out_folder, out_name)
             # the 'do' function is main function for batch process
             self.do(in_path, out_path)
@@ -246,15 +341,15 @@ class FileProcessing(object):
         # find all patterns from regular expression
         if self._is_re_pattern:
             # if contains `pattern_identifier`, it is considered to be regular expression restrictions
-            pattern = self.in_format[len(self._re_pattern_identifier):]
-            fs = self._glob_files(self.input, '**/*')
+            pattern = self.fp_in_format[len(self._re_pattern_identifier):]
+            fs = self._glob_files(self.fp_input, '**/*')
             fs = [x for x in fs if os.path.isfile(x) and re.search(pattern, os.path.split(x)[-1]) is not None]
         elif self._is_glob_pattern:
-            pattern = self.in_format[len(self._glob_pattern_identifier):]
-            fs = self._glob_files(self.input, '**/' + pattern)
+            pattern = self.fp_in_format[len(self._glob_pattern_identifier):]
+            fs = self._glob_files(self.fp_input, '**/' + pattern)
             fs = [x for x in fs if os.path.isfile(x)]
         else:
-            fs = self._glob_files(self.input, '**/' + '**/*.' + self.in_format)
+            fs = self._glob_files(self.fp_input, '**/' + '**/*.' + self.fp_in_format)
             fs = [x for x in fs if os.path.isfile(x)]
         return fs
 
@@ -272,29 +367,33 @@ class FileProcessing(object):
     def _check_input_file_path(self, in_path):
         """ check file that match the input format """
         if self._is_re_pattern:
-            pattern = self.in_format[len(self._re_pattern_identifier):]
+            pattern = self.fp_in_format[len(self._re_pattern_identifier):]
             condition = re.search(pattern, os.path.split(in_path)[-1]) is not None
         else:
-            condition = in_path.endswith('.' + self.in_format)
+            condition = in_path.endswith('.' + self.fp_in_format)
         return condition
+
+    def _tidy_fs(self, lines):
+        fs = []
+        common_path = lines[0]
+        for line in lines:
+            path = os.path.abspath(line.strip())
+            condition = self._check_input_file_path(path)
+            if os.path.isfile(path) and condition:
+                fs.append(path)
+                common_path = self._get_common_path(path, common_path)
+        # tidy path
+        common_path = os.path.dirname(common_path)
+        return common_path, fs
 
     def _read_fs(self):
         """
         read paths from text file: one line with one path
         else: only one input file
         """
-        fs = []
-        with open(self.input, 'r', encoding=self.file_encoding) as f:
+        with open(self.fp_input, 'r', encoding=self.file_encoding) as f:
             lines = f.readlines()
-            common_path = lines[0]
-            for line in lines:
-                path = os.path.abspath(line.strip())
-                condition = self._check_input_file_path(path)
-                if os.path.isfile(path) and condition:
-                    fs.append(path)
-                    common_path = self._get_common_path(path, common_path)
-        # tidy path
-        common_path = os.path.dirname(common_path)
+        common_path, fs = self._tidy_fs(lines)
         return common_path, fs
 
     def _do_once(self):
@@ -303,10 +402,10 @@ class FileProcessing(object):
         --> input format == `in_format`
         --> output format == `out_format` (optional)
         """
-        attributes = [self.input]
+        attributes = [self.fp_input]
         if not self._single_mode:
-            if self.output.endswith(self.out_format):
-                attributes.append(self.output)
+            if self.fp_output.endswith(self.fp_out_format):
+                attributes.append(self.fp_output)
             else:
                 raise AttributeError('ERROR: output format should match at single process!')
         self.do(*attributes)
@@ -324,74 +423,7 @@ class FileProcessing(object):
         """
         pass
 
-    def __call__(self):
-        """ parallel processing on files in file system """
-        # initialize parameter
-        self._initialize_parameters()
-        # main
-        if os.path.isfile(self.input):
-            # if not meet input format requirement: consider it as paths text file
-            condition = self._check_input_file_path(self.input)
-            if not condition:
-                self.input, fs = self._read_fs()
-            # else: single process
-            else:
-                self._do_once()
-                return
-        elif os.path.isdir(self.input):
-            fs = self._find_fs()
-        else:
-            raise ValueError('ERROR: input not given, `input` as a file/directory is required!')
-        # multiple process
-        self._total_file_number = len(fs)
-        if not self._total_file_number:
-            raise FileNotFoundError('ERROR: no file has been found!')
-
-        def _callback_function(args):
-            # update p_bar
-            p_bar.update()
-            # custom callback function
-            if self._callback_input_length == 0:
-                self.callback()
-            elif self._callback_input_length == 1:
-                self.callback(args)
-            elif self._callback_input_length == self._callback_do_input_length:
-                self.callback(*args)
-            else:
-                raise AttributeError(f'ERROR: number of inputs for callback not matched '
-                                     f'({self._callback_input_length}!={self._callback_do_input_length})!')
-            # clean file path if few situation happen
-            if not self._single_mode:
-                in_path, out_path = args
-                if not os.path.exists(out_path):
-                    self._empty_file_counter += 1
-                if self._empty_file_counter / self._total_file_number < self._stop_each_file_cleaning_ratio:
-                    self._simplify_path(self.output, out_path)
-
-        with tqdm(total=len(fs), dynamic_ncols=True) as p_bar:
-            if self.cpu != 1:
-                pool = mp.Pool(self._cpu_count(self.cpu))
-
-                for f in fs:
-                    pool.apply_async(self._do_multiple, args=(f,), callback=_callback_function)
-                # set multiprocessing within `tqdm` for process bar update
-                pool.close()
-                pool.join()
-            else:
-                for f in fs:
-                    result = self._do_multiple(f)
-                    _callback_function(result)
-
-        # clean output folder
-        if not self._single_mode and (
-                self._empty_file_counter / self._total_file_number >= self._stop_each_file_cleaning_ratio):
-            self._remove_empty_folder(self.output)
-        # remove empty logs
-        if self.logger_level is not None:
-            self._remove_empty_file(self._logger_folder)
-            self._remove_empty_folder(self._logger_folder)
-
     @staticmethod
-    def api_change_format(path, out_format):
+    def fp_change_format(path, out_format):
         """ change format API """
         return os.path.splitext(path)[0] + '.' + out_format
