@@ -27,11 +27,15 @@ If `output` or `out_format` is `None`, it is consider to be target file `input` 
 * Inputs:
   
   * `input`: 
+    
     * a folder to do operation;
     * a file to process once (with same input format);
     * a text file which stores paths instead of finding file paths (with different input format);
+  
   * `in_format`: format to search to do operation (for file processing); 
+    
     * if starts with `\`, the file name will follow a `Regular Expression` restriction;
+    
     * if starts with `^`, the search will follow `glob` restriction;
       
       #### Optional
@@ -66,6 +70,10 @@ Input:
 * `None`;
 * `1` argument: combined input;
 * arguments same as function `do`;
+
+#### Function `before` (Optional):
+
+Do something just before multiprocessing.
 
 ### Files list operation
 

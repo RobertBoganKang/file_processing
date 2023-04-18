@@ -62,6 +62,7 @@ class FileProcessing(object):
 
     def __call__(self):
         """ parallel processing on files in file system """
+        self.before()
         if self._do_once_status:
             self._do_once()
             return
@@ -427,6 +428,12 @@ class FileProcessing(object):
     def callback(self, *args):
         """
         define custom callback function.
+        """
+        pass
+
+    def before(self):
+        """
+        do something before multiprocessing
         """
         pass
 
