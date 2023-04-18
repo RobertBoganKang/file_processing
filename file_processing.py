@@ -386,8 +386,7 @@ class FileProcessing(object):
         common_path = lines[0]
         for line in lines:
             path = os.path.abspath(line.strip())
-            condition = self._check_input_file_path(path)
-            if os.path.isfile(path) and condition:
+            if self._check_input_file_path(path):
                 fs.append(path)
                 common_path = self._get_common_path(path, common_path)
         # tidy path
