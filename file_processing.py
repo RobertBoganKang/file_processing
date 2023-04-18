@@ -433,7 +433,7 @@ class FileProcessing(object):
 
     def before(self):
         """
-        do something before multiprocessing
+        do something just before multiprocessing
         """
         pass
 

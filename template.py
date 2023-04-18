@@ -41,6 +41,12 @@ class Template(FileProcessing):
             * arguments same as function `do`;
         """
         pass
+    
+    def before(self):
+        """
+        (optional) do something just before multiprocessing
+        """
+        pass
 
 
 if __name__ == '__main__':
