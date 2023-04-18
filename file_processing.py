@@ -152,6 +152,8 @@ class FileProcessing(object):
         self._is_re_pattern = self.fp_in_format.startswith(self._re_pattern_identifier)
         self._glob_pattern_identifier = '^'
         self._is_glob_pattern = self.fp_in_format.startswith(self._glob_pattern_identifier)
+        self._skip_pattern_identifier = '!'
+        self._is_skip_pattern = self.fp_in_format.startswith(self._skip_pattern_identifier)
         # empty folder counter
         self._empty_file_counter = 0
         self._total_file_number = None
@@ -327,7 +329,7 @@ class FileProcessing(object):
             in_path, out_folder = args
             out_name = os.path.split(in_path)[1]
             # truncated the format and add a new one
-            if self._is_re_pattern or self._is_glob_pattern:
+            if self._is_re_pattern or self._is_glob_pattern or self._is_skip_pattern:
                 out_name = os.path.splitext(out_name)[0]
             else:
                 out_name = out_name[:-len(self.fp_in_format) - 1]
@@ -356,8 +358,10 @@ class FileProcessing(object):
             pattern = self.fp_in_format[len(self._glob_pattern_identifier):]
             fs = self._glob_files(self.fp_input, '**/' + pattern)
             fs = [x for x in fs if os.path.isfile(x)]
+        elif self._is_skip_pattern:
+            fs = self._glob_files(self.fp_input, '**/*')
         else:
-            fs = self._glob_files(self.fp_input, '**/' + '**/*.' + self.fp_in_format)
+            fs = self._glob_files(self.fp_input, '**/*.' + self.fp_in_format)
             fs = [x for x in fs if os.path.isfile(x)]
         return fs
 
@@ -373,12 +377,14 @@ class FileProcessing(object):
         return path_a[:i]
 
     def _check_input_file_path(self, in_path):
-        """ check file that match the input format """
+        """ check file that match the input format, and its existence """
         if self._is_re_pattern:
             pattern = self.fp_in_format[len(self._re_pattern_identifier):]
             condition = re.search(pattern, os.path.split(in_path)[-1]) is not None
+            condition = condition and os.path.exists(in_path)
         else:
             condition = in_path.endswith('.' + self.fp_in_format)
+            condition = condition and os.path.exists(in_path)
         return condition
 
     def _tidy_fs(self, lines):
@@ -386,7 +392,7 @@ class FileProcessing(object):
         common_path = lines[0]
         for line in lines:
             path = os.path.abspath(line.strip())
-            if self._check_input_file_path(path):
+            if self._is_skip_pattern or self._check_input_file_path(path):
                 fs.append(path)
                 common_path = self._get_common_path(path, common_path)
         # tidy path

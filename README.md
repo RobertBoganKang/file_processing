@@ -35,10 +35,10 @@ If `output` or `out_format` is `None`, it is consider to be target file `input` 
   * `in_format`: format to search to do operation (for file processing); 
     
     * if starts with `\`, the file name will follow a `Regular Expression` restriction;
-    
     * if starts with `^`, the search will follow `glob` restriction;
-      
-      #### Optional
+    * if starts with `!`, the program will skip all input check;
+
+#### Optional
 
 * Outputs (for `io` data flow):
   
