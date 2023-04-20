@@ -2,23 +2,23 @@
 
 ## Introduction
 
-This default process is to recursively find the targeted file with given input format, and do operation to the new output path with output format.
+This default process recursively finds the target file for a given input format and batches it into the output folder with the original file structure in the new output format.
 
-The class will process files with parallel computing power (multiple-core CPU).
+This class is designed to process files using parallel computing power (multi-core CPUs).
 
 ## Usage
 
-The file `template.py` can be referred. Modify it with your function.
+The file `template.py` can be referenced. Make changes to it with your functions.
 
-### Usage 1 (`argparse`)
+### Usage 1 (`~~argparse`)
 
-Then, inherit the class, and pass required parameters through `argparse` into the class.
+Then, inherit the class and pass the required arguments into it in the form of `argparse`.
 
 ### Usage 2 (`dict`)
 
-Build a `dict` with few required parameters below, and pass into the class.
+Create a `dict` with the following few necessary parameters and pass it to the class.
 
-If `output` or `out_format` is `None`, it is consider to be target file `input` operation, else the data is from `input` to `output`.
+If `output` or out_format is `None`, it is considered an `input` operation for the target file, otherwise the data will flow from `input` to `output`.
 
 ### Parameters
 
@@ -30,7 +30,7 @@ If `output` or `out_format` is `None`, it is consider to be target file `input` 
     
     * a folder to do operation;
     * a file to process once (with same input format);
-    * a text file which stores paths instead of finding file paths (with different input format);
+    * a text file storing the path, rather than looking for the file path (with a different input format);
   
   * `in_format`: format to search to do operation (for file processing); 
     
@@ -43,8 +43,8 @@ If `output` or `out_format` is `None`, it is consider to be target file `input` 
 * Outputs (for `io` data flow):
   
   * `output` (for `io`):
-    * output folder to export something with the same file system structures;
-    * a file to process once (with same output format);
+    * output folder to export something with the same file system structure;
+    * to process a file once (with same output format);
   * `out_format`: the export file format (for file processing);
 
 * `cpu_number`: the number of CPU to process;
@@ -59,7 +59,7 @@ If `output` or `out_format` is `None`, it is consider to be target file `input` 
 
 #### Function `do`:
 
-Consider parameters `in_path` and `out_path` are just one file data flow (or `in_folder` and `out_folder` are just one folder of data flow), from the source to the target.
+Consider the parameters `in_path` and `out_path` as just a stream of files (or `in_folder` and `out_folder` as just a stream of folders), from source to target.
 
 #### Function `callback` (optional):
 
@@ -87,4 +87,4 @@ For example: initialize several objects `fp1`, `fp2`..., then:
 
 ### Do operation
 
-To get everything run just call the class with `()`.
+To get all the runs, just call the class with `()`.
