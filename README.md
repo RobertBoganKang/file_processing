@@ -81,7 +81,7 @@ To perform operations on different file lists.
 
 For example: initialize several objects `fp1`, `fp2`..., then there are set operations (python style):
 
-* Or (`|`), and (`&`), minus (`-`), xor (`^`);
+* Or (`|`), and (`&`), subtraction (`-`), xor (`^`);
 
 * Use it as a common set operations and can be used in combination;
 
