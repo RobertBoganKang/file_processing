@@ -79,11 +79,11 @@ Do something just before multiprocessing.
 
 To perform operations on different file lists.
 
-For example: initialize several objects `fp1`, `fp2`..., then:
+For example: initialize several objects `fp1`, `fp2`..., then there are set operations (python style):
 
-* If using `fp1 + fp2` is to concatenate files list together;
+* Or (`|`), and (`&`), minus (`-`), xor (`^`);
 
-* If using `fp1 - fp2` is to subtracting file list `fp2` from `fp1`;
+* Use it as a common set operations and can be used in combination;
 
 ### Do operation
 

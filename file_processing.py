@@ -118,18 +118,26 @@ class FileProcessing(object):
     def __getitem__(self, item):
         return self.fp_paths[item]
 
-    def __add__(self, other_fp_obj):
-        # format should match
-        assert self.fp_in_format == other_fp_obj.fp_in_format
-        assert self.fp_out_format == other_fp_obj.fp_out_format
+    def __or__(self, other_fp_obj):
+        self._check_format(other_fp_obj)
         self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) | set(other_fp_obj.fp_paths)))
         self._update_paths_len()
         return self
 
+    def __xor__(self, other_fp_obj):
+        self._check_format(other_fp_obj)
+        self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) ^ set(other_fp_obj.fp_paths)))
+        self._update_paths_len()
+        return self
+
+    def __and__(self, other_fp_obj):
+        self._check_format(other_fp_obj)
+        self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) & set(other_fp_obj.fp_paths)))
+        self._update_paths_len()
+        return self
+
     def __sub__(self, other_fp_obj):
-        # format should match
-        assert self.fp_in_format == other_fp_obj.fp_in_format
-        assert self.fp_out_format == other_fp_obj.fp_out_format
+        self._check_format(other_fp_obj)
         self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) - set(other_fp_obj.fp_paths)))
         self._update_paths_len()
         return self
@@ -192,6 +200,11 @@ class FileProcessing(object):
         self._total_file_number = len(self.fp_paths)
         if not self._total_file_number:
             raise FileNotFoundError('ERROR: no file has been found!')
+
+    def _check_format(self, obj):
+        # format should match
+        assert self.fp_in_format == obj.fp_in_format
+        assert self.fp_out_format == obj.fp_out_format
 
     @staticmethod
     def _fix_path(path):
