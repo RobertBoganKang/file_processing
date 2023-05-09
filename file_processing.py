@@ -1,12 +1,14 @@
 import functools
 import logging
 import multiprocessing as mp
+import operator
 import os
 import pathlib
 import re
 import shutil
 import signal
 import time
+from copy import copy
 from inspect import signature
 
 from tqdm import tqdm
@@ -113,34 +115,23 @@ class FileProcessing(object):
             self._remove_empty_folder(self._logger_folder)
 
     def __len__(self):
+        self._update_paths_len()
         return len(self.fp_paths)
 
     def __getitem__(self, item):
         return self.fp_paths[item]
 
     def __or__(self, other_fp_obj):
-        self._check_format(other_fp_obj)
-        self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) | set(other_fp_obj.fp_paths)))
-        self._update_paths_len()
-        return self
+        return self._set_operators(other_fp_obj, operator.or_)
 
     def __xor__(self, other_fp_obj):
-        self._check_format(other_fp_obj)
-        self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) ^ set(other_fp_obj.fp_paths)))
-        self._update_paths_len()
-        return self
+        return self._set_operators(other_fp_obj, operator.xor)
 
     def __and__(self, other_fp_obj):
-        self._check_format(other_fp_obj)
-        self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) & set(other_fp_obj.fp_paths)))
-        self._update_paths_len()
-        return self
+        return self._set_operators(other_fp_obj, operator.and_)
 
     def __sub__(self, other_fp_obj):
-        self._check_format(other_fp_obj)
-        self.fp_input, self.fp_paths = self._tidy_fs(list(set(self.fp_paths) - set(other_fp_obj.fp_paths)))
-        self._update_paths_len()
-        return self
+        return self._set_operators(other_fp_obj, operator.sub)
 
     def _initialize_parameters(self):
         # input controls
@@ -194,6 +185,16 @@ class FileProcessing(object):
         else:
             raise ValueError('ERROR: input not given, `input` as a file/directory is required!')
         self._update_paths_len()
+
+    def _set_operators(self, other_fp_obj, func):
+        new_obj = copy(self)
+        self._check_format(other_fp_obj)
+        new_obj.fp_input, new_obj.fp_paths = self._tidy_fs(
+            list(
+                func(set(self.fp_paths), set(other_fp_obj.fp_paths))
+            )
+        )
+        return new_obj
 
     def _update_paths_len(self):
         # multiple process
@@ -268,10 +269,7 @@ class FileProcessing(object):
 
     @staticmethod
     def _glob_files(base_folder, pattern):
-        fs = []
-        for file in pathlib.Path(base_folder).glob(pattern):
-            fs.append(str(file))
-        return fs
+        return pathlib.Path(base_folder).glob(pattern)
 
     @staticmethod
     def _remove_empty_folder(target_folder):
@@ -401,9 +399,13 @@ class FileProcessing(object):
         return condition
 
     def _tidy_fs(self, lines):
+        """ check file status and find common root path """
         fs = []
-        common_path = lines[0]
+        if len(lines) == 0:
+            return None, fs
+        common_path = str(lines[0])
         for line in lines:
+            line = str(line)
             path = os.path.abspath(line.strip())
             if self._is_skip_pattern or self._check_input_file_path(path):
                 fs.append(path)
