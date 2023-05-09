@@ -65,9 +65,7 @@ If `output` or out_format is `None`, it is considered an `input` operation for t
 
 * Function `before`: do something just before multiprocessing;
 
-* Function `callback`: callback will do operation after each process done. 
-  
-  Input:
+* Function `callback`: callback will do operation after each process done, with input:
   
   * `None`;
   * `1` argument: combined input;
