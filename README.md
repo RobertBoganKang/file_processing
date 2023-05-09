@@ -36,7 +36,7 @@ If `output` or out_format is `None`, it is considered an `input` operation for t
     
     * if starts with `\`, the file name will follow a `Regular Expression` restriction;
     * if starts with `^`, the search will follow `glob` restriction;
-    * if starts with `!`, the program will skip all input check;
+    * if starts with `!`, the program will skip all input check (file existence, file format check);
 
 #### Optional
 
