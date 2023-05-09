@@ -52,7 +52,7 @@ class FileProcessing(object):
         self.fp_in_format = self._set_parser_value(ops, 'in_format', '\\')
         self.fp_output = self._set_parser_value(ops, 'output', None)
         self.fp_out_format = self._set_parser_value(ops, 'out_format', None)
-        self.fp_cpu = self._set_parser_value(ops, 'cpu_number', 0)
+        self.fp_cpu = self._set_parser_value(ops, 'cpu_number', 1)
         self.fp_logger_level = self._set_parser_value(ops, 'logger_level', None)
         self.fp_paths = []
 
