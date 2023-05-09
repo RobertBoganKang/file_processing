@@ -6,23 +6,23 @@ This default process recursively finds the target file for a given input format 
 
 This class is designed to process files using parallel computing power (multi-core CPUs).
 
-## Usage
+## How to use
 
 The file `template.py` can be referenced. Make changes to it with your functions.
 
-### Usage 1 (`~~argparse`)
+### Mehthod 1 (`argparse`)
 
 Then, inherit the class and pass the required arguments into it in the form of `argparse`.
 
-### Usage 2 (`dict`)
+### Mehthod 2 (`dict`)
 
 Create a `dict` with the following few necessary parameters and pass it to the class.
 
 If `output` or out_format is `None`, it is considered an `input` operation for the target file, otherwise the data will flow from `input` to `output`.
 
-### Parameters
+## Parameters
 
-#### Required
+### Required
 
 * Inputs:
   
@@ -38,7 +38,7 @@ If `output` or out_format is `None`, it is considered an `input` operation for t
     * if starts with `^`, the search will follow `glob` restriction;
     * if starts with `!`, the program will skip all input check (file existence, file format check);
 
-#### Optional
+### Optional
 
 * Outputs (for `io` data flow):
   
@@ -55,36 +55,34 @@ If `output` or out_format is `None`, it is considered an `input` operation for t
   * `self.logger` is logger parameter to use; 
   * WARNING: it is easy to break when `cpu > 1`;
 
-### Overwrite Function
+## Overwrite Function
 
-#### Function `do`:
+### Required
 
-Consider the parameters `in_path` and `out_path` as just a stream of files (or `in_folder` and `out_folder` as just a stream of folders), from source to target.
+* Function `do`: consider the parameters `in_path` and `out_path` as just a stream of files (or `in_folder` and `out_folder` as just a stream of folders), from source to target;
 
-#### Function `callback` (optional):
+### Optional
 
-Callback will do operation after each process done.
+* Function `before`: do something just before multiprocessing;
 
-Input:
+* Function `callback`: callback will do operation after each process done. 
+  
+  Input:
+  
+  * `None`;
+  * `1` argument: combined input;
+  * arguments same as function `do`;
 
-* `None`;
-* `1` argument: combined input;
-* arguments same as function `do`;
-
-#### Function `before` (Optional):
-
-Do something just before multiprocessing.
-
-### Files list operation
+## Files list operation
 
 To perform operations on different file lists.
 
 For example: initialize several objects `fp1`, `fp2`..., then there are set operations (python style):
 
-* Or (`|`), and (`&`), subtraction (`-`), xor (`^`);
+* Operations: or (`|`), and (`&`), subtraction (`-`), xor (`^`);
 
 * Use it as a common set operations and can be used in combination;
 
-### Do operation
+## Do operation in parallel
 
 To get all the runs, just call the class with `()`.
