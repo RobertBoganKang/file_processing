@@ -456,8 +456,3 @@ class FileProcessing(object):
         do something just before multiprocessing
         """
         pass
-
-    @staticmethod
-    def fp_change_format(path, out_format):
-        """ change format API """
-        return os.path.splitext(path)[0] + '.' + out_format
