@@ -161,7 +161,6 @@ class FileProcessing(object):
         self._do_once_status = False
 
     def _initialize_paths(self):
-        # main
         if os.path.isfile(self.fp_input):
             # if not meet input format requirement: consider it as paths text file
             if not self._check_input_file_path(self.fp_input):
@@ -187,13 +186,12 @@ class FileProcessing(object):
         return new_obj
 
     def _update_paths_len(self):
-        # multiple process
         self._total_file_number = len(self.fp_paths)
         if not self._total_file_number:
             raise FileNotFoundError('ERROR: no file has been found!')
 
     def _check_format(self, obj):
-        # format method should match
+        """ format should match """
         assert self.fp_in_format == obj.fp_in_format
         assert self.fp_out_format == obj.fp_out_format
 
