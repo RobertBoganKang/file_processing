@@ -364,16 +364,17 @@ class FileProcessing(object):
             # if contains `pattern_identifier`, it is considered to be regular expression restrictions
             pattern = self.fp_in_format[len(self._re_pattern_identifier):]
             fs = self._glob_files(self.fp_input, '**/*')
-            fs = [x for x in fs if os.path.isfile(x) and re.search(pattern, os.path.split(x)[-1]) is not None]
+            fs = [str(x) for x in fs if os.path.isfile(x) and re.search(pattern, os.path.split(x)[-1]) is not None]
         elif self._is_glob_pattern:
             pattern = self.fp_in_format[len(self._glob_pattern_identifier):]
             fs = self._glob_files(self.fp_input, '**/' + pattern)
-            fs = [x for x in fs if os.path.isfile(x)]
+            fs = [str(x) for x in fs if os.path.isfile(x)]
         elif self._is_skip_pattern:
             fs = self._glob_files(self.fp_input, '**/*')
+            fs = [str(x) for x in fs]
         else:
             fs = self._glob_files(self.fp_input, '**/*.' + self.fp_in_format)
-            fs = [x for x in fs if os.path.isfile(x)]
+            fs = [str(x) for x in fs if os.path.isfile(x)]
         return fs
 
     @staticmethod
@@ -403,9 +404,8 @@ class FileProcessing(object):
         fs = []
         if len(lines) == 0:
             return None, fs
-        common_path = str(lines[0])
+        common_path = lines[0]
         for line in lines:
-            line = str(line)
             path = os.path.abspath(line.strip())
             if self._is_skip_pattern or self._check_input_file_path(path):
                 fs.append(path)
