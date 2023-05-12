@@ -100,8 +100,7 @@ class FileProcessing(object):
                 with executor_class(max_workers=self._cpu_count(self.fp_cpu)) as executor:
                     for f in self.fp_paths:
                         future = executor.submit(self._do_multiple, f)
-                        future.add_done_callback(fn=_callback_function)
-                        p_bar.update()
+                        future.add_done_callback(fn=lambda func: _callback_function(func.result()))
             else:
                 for f in self.fp_paths:
                     result = self._do_multiple(f)
@@ -194,7 +193,7 @@ class FileProcessing(object):
             raise FileNotFoundError('ERROR: no file has been found!')
 
     def _check_format(self, obj):
-        # format should match
+        # format method should match
         assert self.fp_in_format == obj.fp_in_format
         assert self.fp_out_format == obj.fp_out_format
 
