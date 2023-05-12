@@ -1,13 +1,11 @@
 import functools
-import logging
-import multiprocessing as mp
 import operator
 import os
 import pathlib
 import re
 import shutil
 import signal
-import time
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from copy import copy
 from inspect import signature
 
@@ -55,7 +53,7 @@ class FileProcessing(object):
         self.fp_output = self._set_parser_value(ops, 'output', None)
         self.fp_out_format = self._set_parser_value(ops, 'out_format', None)
         self.fp_cpu = self._set_parser_value(ops, 'cpu_number', 1)
-        self.fp_logger_level = self._set_parser_value(ops, 'logger_level', None)
+        self.fp_multi_what = self._set_parser_value(ops, 'multi_what', 'mp')
         self.fp_paths = []
 
         # initialize parameter
@@ -93,13 +91,17 @@ class FileProcessing(object):
 
         with tqdm(total=len(self.fp_paths), dynamic_ncols=True) as p_bar:
             if self.fp_cpu != 1:
-                pool = mp.Pool(self._cpu_count(self.fp_cpu))
-
-                for f in self.fp_paths:
-                    pool.apply_async(self._do_multiple, args=(f,), callback=_callback_function)
-                # set multiprocessing within `tqdm` for process bar update
-                pool.close()
-                pool.join()
+                if self.fp_multi_what == 'mp':
+                    executor_class = ProcessPoolExecutor
+                elif self.fp_multi_what == 'mt':
+                    executor_class = ThreadPoolExecutor
+                else:
+                    raise ValueError('ERROR: multi-what should be: multi-threading `mt`, or multi-processing `mp`!')
+                with executor_class(max_workers=self._cpu_count(self.fp_cpu)) as executor:
+                    for f in self.fp_paths:
+                        future = executor.submit(self._do_multiple, f)
+                        future.add_done_callback(fn=_callback_function)
+                        p_bar.update()
             else:
                 for f in self.fp_paths:
                     result = self._do_multiple(f)
@@ -109,10 +111,6 @@ class FileProcessing(object):
         if not self._single_mode and (
                 self._empty_file_counter / self._total_file_number >= self._stop_each_file_cleaning_ratio):
             self._remove_empty_folder(self.fp_output)
-        # remove empty logs
-        if self.fp_logger_level is not None:
-            self._remove_empty_file(self._logger_folder)
-            self._remove_empty_folder(self._logger_folder)
 
     def __len__(self):
         self._update_paths_len()
@@ -157,13 +155,6 @@ class FileProcessing(object):
         self._empty_file_counter = 0
         self._total_file_number = None
         self._stop_each_file_cleaning_ratio = 0.1
-        # logger (easy to break in multiprocessing)
-        if self.fp_logger_level is not None:
-            self._logger_folder = 'log'
-            self._log_path = os.path.join(self._logger_folder,
-                                          time.strftime(f'log_%Y%m%d%H%M%S', time.localtime(time.time())) + '.log')
-
-            self.logger = self._get_logger()
         # callback number of inputs
         self._callback_input_length = len(signature(self.callback).parameters)
         self._callback_do_input_length = len(signature(self.do).parameters)
@@ -220,7 +211,7 @@ class FileProcessing(object):
         get the cpu number
         :return: int; valid cpu number
         """
-        max_cpu = mp.cpu_count()
+        max_cpu = os.cpu_count()
         if 0 < cpu <= max_cpu:
             return cpu
         elif cpu == 0 or cpu > max_cpu:
@@ -239,33 +230,6 @@ class FileProcessing(object):
             return default_value
         else:
             return ops[parser_name]
-
-    def _get_logger(self):
-        """ get a logger """
-        # makedir
-        os.makedirs(self._logger_folder, exist_ok=True)
-
-        # create a logger
-        logger = mp.get_logger()
-        if self.fp_logger_level.lower() == 'info':
-            logger.setLevel(logging.INFO)
-        elif self.fp_logger_level.lower() == 'warning':
-            logger.setLevel(logging.WARNING)
-        elif self.fp_logger_level.lower() == 'error':
-            logger.setLevel(logging.ERROR)
-        elif self.fp_logger_level.lower() == 'debug':
-            logger.setLevel(logging.DEBUG)
-        else:
-            raise AttributeError('ERROR: `logger_level` parameter ERROR.')
-        # create handler
-        fh = logging.FileHandler(self._log_path, encoding='utf-8')
-        fh.setLevel(logging.DEBUG)
-        # define handler format
-        formatter = logging.Formatter("%(asctime)s|%(levelname)s|%(filename)s[%(lineno)d]|%(message)s")
-        fh.setFormatter(formatter)
-        # add logger into handler
-        logger.addHandler(fh)
-        return logger
 
     @staticmethod
     def _glob_files(base_folder, pattern):

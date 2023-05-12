@@ -49,11 +49,7 @@ If `output` or out_format is `None`, it is considered an `input` operation for t
 
 * `cpu_number`: the number of CPU to process;
 
-* `logger_level`: defines the level of logger to print (`debug`, `info`, `warn`, `error`, `fatal`);
-  
-  * if `None`: no log file generated; 
-  * `self.logger` is logger parameter to use; 
-  * WARNING: it is easy to break when `cpu > 1`;
+* `multi_what`: defines the method of processing: multi-processing with `mp`, or multi-threading with `mt`;
 
 ## Overwrite Function
 

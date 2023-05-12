@@ -41,7 +41,7 @@ class Template(FileProcessing):
             * arguments same as function `do`;
         """
         pass
-    
+
     def before(self):
         """
         (optional) do something just before multiprocessing
@@ -58,8 +58,9 @@ if __name__ == '__main__':
     fp_group.add_argument('--output', '-o', type=str, help='the output folder/file', default='out')
     fp_group.add_argument('--out_format', '-of', type=str, help='the output format', default='yyy')
     fp_group.add_argument('--cpu_number', '-j', type=int, help='cpu number of processing', default=0)
-    fp_group.add_argument('--logger_level', '-log', type=str,
-                          help='define the logger level, if `None`: no log file generated', default=None)
+    fp_group.add_argument('--multi_what', '-x', type=str,
+                          help='multi-threading: `mt`, or multi-processing: `mp` (default)',
+                          default=None)
 
     xx_group = parser.add_argument_group('xxx xxx arguments')
 
@@ -72,7 +73,7 @@ if __name__ == '__main__':
     #     'output': 'out',
     #     'out_format': 'yyy',
     #     'cpu_number': 0,
-    #     'logger_level': None
+    #     'multi_what': 'mp'
     # }
 
     # do operation
