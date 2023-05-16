@@ -405,7 +405,7 @@ class FileProcessing(object):
     def do(self, *args):
         """
         do function will be implemented on main files, please rewrite this method.
-        --> refer the file `vad.py`.
+        --> refer the file `template.py`.
         """
         pass
 
