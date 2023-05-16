@@ -380,8 +380,11 @@ class FileProcessing(object):
         read paths from text file: one line with one path
         else: only one input file
         """
-        with open(self.fp_input, 'r', encoding=self.file_encoding) as f:
-            lines = f.readlines()
+        try:
+            with open(self.fp_input, 'r', encoding=self.file_encoding) as f:
+                lines = f.readlines()
+        except Exception:
+            raise ValueError(f'ERROR: input file cannot be read!')
         common_path, fs = self._tidy_fs(lines)
         return common_path, fs
 
@@ -402,7 +405,7 @@ class FileProcessing(object):
     def do(self, *args):
         """
         do function will be implemented on main files, please rewrite this method.
-        --> refer the file `template.py`.
+        --> refer the file `vad.py`.
         """
         pass
 
