@@ -397,6 +397,7 @@ class FileProcessing(object):
         attributes = [self.fp_input]
         if not self._single_mode:
             if self.fp_output.endswith(self.fp_out_format):
+                os.makedirs(os.path.dirname(self.fp_output), exist_ok=True)
                 attributes.append(self.fp_output)
             else:
                 raise AttributeError('ERROR: output format should match at single process!')
