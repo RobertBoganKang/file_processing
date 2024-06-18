@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from copy import copy
 from inspect import signature
 
+import numpy as np
 from tqdm import tqdm
 
 
@@ -138,7 +139,6 @@ class FileProcessing(object):
         # fix input/output
         self.fp_input = self._fix_path(self.fp_input)
         self.fp_output = self._fix_path(self.fp_output)
-        self.file_encoding = 'utf-8'
         # single mode: True: 1, False: 2 data flow
         self._single_mode = self.fp_output is None
         if not self._single_mode and self.fp_out_format is None:
@@ -238,7 +238,7 @@ class FileProcessing(object):
         for root, dirs, files in os.walk(target_folder, topdown=False):
             for name in dirs:
                 dir_path = os.path.join(root, name)
-                if not os.listdir(dir_path):
+                if not os.listdir(str(dir_path)):
                     path = os.path.join(root, name)
                     shutil.rmtree(path)
         # remove root
@@ -381,8 +381,7 @@ class FileProcessing(object):
         else: only one input file
         """
         try:
-            with open(self.fp_input, 'r', encoding=self.file_encoding) as f:
-                lines = f.readlines()
+            lines = np.loadtxt(self.fp_input, dtype=str).tolist()
         except Exception:
             raise ValueError(f'ERROR: input file cannot be read!')
         common_path, fs = self._tidy_fs(lines)
