@@ -381,7 +381,7 @@ class FileProcessing(object):
         else: only one input file
         """
         try:
-            lines = np.loadtxt(self.fp_input, dtype=str).tolist()
+            lines = np.loadtxt(self.fp_input, dtype=str, comments=None).tolist()
         except Exception:
             raise ValueError(f'ERROR: input file cannot be read!')
         common_path, fs = self._tidy_fs(lines)
