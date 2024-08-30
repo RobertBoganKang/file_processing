@@ -1,4 +1,6 @@
+import concurrent.futures
 import functools
+import glob
 import operator
 import os
 import pathlib
@@ -63,54 +65,21 @@ class FileProcessing(object):
 
     def __call__(self):
         """ parallel processing on files in file system """
+
         self.before()
+        # do once
         if self._do_once_status:
-            self._do_once()
+            args = self._do_once()
+            self._run_callback(args)
             return
-        self._update_paths_len()
 
-        def _callback_function(args):
-            # update p_bar
-            p_bar.update()
-            # custom callback function
-            if self._callback_input_length == 0:
-                self.callback()
-            elif self._callback_input_length == 1:
-                self.callback(args)
-            elif self._callback_input_length == self._callback_do_input_length:
-                self.callback(*args)
-            else:
-                raise AttributeError(f'ERROR: number of inputs for callback not matched '
-                                     f'({self._callback_input_length}!={self._callback_do_input_length})!')
-            # clean file path if few situation happen
-            if not self._single_mode:
-                in_path, out_path = args
-                if not os.path.exists(out_path):
-                    self._empty_file_counter += 1
-                if self._empty_file_counter / self._total_file_number < self._stop_each_file_cleaning_ratio:
-                    self._simplify_path(self.fp_output, out_path)
-
-        with tqdm(total=len(self.fp_paths), dynamic_ncols=True) as p_bar:
-            if self.fp_cpu != 1:
-                if self.fp_multi_what == 'mp':
-                    executor_class = ProcessPoolExecutor
-                elif self.fp_multi_what == 'mt':
-                    executor_class = ThreadPoolExecutor
-                else:
-                    raise ValueError('ERROR: multi-what should be: multi-threading `mt`, or multi-processing `mp`!')
-                with executor_class(max_workers=self._cpu_count(self.fp_cpu)) as executor:
-                    for f in self.fp_paths:
-                        future = executor.submit(self._do_multiple, f)
-                        future.add_done_callback(fn=lambda func: _callback_function(func.result()))
-            else:
-                for f in self.fp_paths:
-                    result = self._do_multiple(f)
-                    _callback_function(result)
+        if self._file_iterator_mode:
+            self._process_imp_imt()
+        else:
+            self._process_mp_mt()
 
         # clean output folder
-        if not self._single_mode and (
-                self._empty_file_counter / self._total_file_number >= self._stop_each_file_cleaning_ratio):
-            self._remove_empty_folder(self.fp_output)
+        self._clean_output_folder()
 
     def __len__(self):
         self._update_paths_len()
@@ -140,8 +109,8 @@ class FileProcessing(object):
         self.fp_input = self._fix_path(self.fp_input)
         self.fp_output = self._fix_path(self.fp_output)
         # single mode: True: 1, False: 2 data flow
-        self._single_mode = self.fp_output is None
-        if not self._single_mode and self.fp_out_format is None:
+        self._single_args_mode = self.fp_output is None
+        if not self._single_args_mode and self.fp_out_format is None:
             self.fp_out_format = ''
         # pattern identifier
         self._re_pattern_identifier = '\\'
@@ -159,23 +128,34 @@ class FileProcessing(object):
         self._callback_do_input_length = len(signature(self.do).parameters)
         # initialize other parameters
         self._do_once_status = False
+        # file iterator mode, this mode do not separate search and process file, but do together
+        self._file_iterator_mode = self.fp_multi_what[0] == 'i'
 
     def _initialize_paths(self):
         if os.path.isfile(self.fp_input):
             # if not meet input format requirement: consider it as paths text file
             if not self._check_input_file_path(self.fp_input):
                 self.fp_input, self.fp_paths = self._read_fs()
+                # fix parameters
+                self._file_iterator_mode = False
+                self.fp_multi_what = self.fp_multi_what.replace('i', '')
             # else: single process
             else:
                 self._do_once_status = True
                 return
         elif os.path.isdir(self.fp_input):
-            self.fp_paths = self._find_fs()
+            if self._file_iterator_mode:
+                # if `multi_what` is iterator mode, do not search files
+                return
+            else:
+                self.fp_paths = self._find_fs()
         else:
             raise ValueError('ERROR: input not given, `input` as a file/directory is required!')
         self._update_paths_len()
 
     def _set_operators(self, other_fp_obj, func):
+        if self._file_iterator_mode:
+            raise ValueError('ERROR: iterator mode cannot use operator.')
         new_obj = copy(self)
         self._check_format(other_fp_obj)
         new_obj.fp_input, new_obj.fp_paths = self._tidy_fs(
@@ -278,9 +258,9 @@ class FileProcessing(object):
                 except Exception:
                     break
 
-    def _do_multiple(self, in_path):
-        """ prepare function for multiprocessing mapping """
-        if not self._single_mode:
+    def _do_multi_mapping(self, in_path):
+        """ prepare function for multiple mapping """
+        if not self._single_args_mode:
             # prepare output path
             truncated_path = os.path.dirname(in_path)[len(self.fp_input) + 1:]
             out_folder = os.path.join(self.fp_output, truncated_path)
@@ -297,7 +277,7 @@ class FileProcessing(object):
         """ single process """
         # in_path: str; input file path
         # out_folder: str; output folder
-        if not self._single_mode:
+        if not self._single_args_mode:
             in_path, out_folder = args
             out_name = os.path.split(in_path)[1]
             # truncated the format and add a new one
@@ -312,11 +292,11 @@ class FileProcessing(object):
             # the 'do' function is main function for batch process
             self.do(in_path, out_path)
             return out_path
-        # only use `in_path`
+        # only use one `path`
         else:
-            in_path = args[0]
-            self.do(in_path)
-            return in_path
+            path = args[0]
+            self.do(path)
+            return path
 
     def _find_fs(self):
         """ find files from glob function """
@@ -337,6 +317,25 @@ class FileProcessing(object):
             fs = self._glob_files(self.fp_input, '**/*.' + self.fp_in_format)
             fs = [str(x) for x in fs if os.path.isfile(x)]
         return fs
+
+    def _find_fs_iterator(self):
+        if self._is_re_pattern:
+            pattern = self.fp_in_format[len(self._re_pattern_identifier):]
+            for x in glob.iglob(os.path.join(f'{self.fp_input}', '**/*'), recursive=True):
+                if os.path.isfile(x) and re.search(pattern, os.path.split(x)[-1]) is not None:
+                    yield x
+        elif self._is_glob_pattern:
+            pattern = self.fp_in_format[len(self._glob_pattern_identifier):]
+            for x in glob.iglob(os.path.join(f'{self.fp_input}', '**/' + pattern), recursive=True):
+                if os.path.isfile(x):
+                    yield x
+        elif self._is_skip_pattern:
+            for x in glob.iglob(os.path.join(f'{self.fp_input}', '**/*'), recursive=True):
+                yield x
+        else:
+            for x in glob.iglob(os.path.join(f'{self.fp_input}', '**/*.' + self.fp_in_format), recursive=True):
+                if os.path.isfile(x):
+                    yield x
 
     @staticmethod
     def _get_common_path(path_a, path_b):
@@ -359,6 +358,11 @@ class FileProcessing(object):
             condition = in_path.endswith('.' + self.fp_in_format)
             condition = condition and os.path.exists(in_path)
         return condition
+
+    def _clean_output_folder(self):
+        if not self._single_args_mode and (
+                self._empty_file_counter / self._total_file_number >= self._stop_each_file_cleaning_ratio):
+            self._remove_empty_folder(self.fp_output)
 
     def _tidy_fs(self, lines):
         """ check file status and find common root path """
@@ -387,6 +391,74 @@ class FileProcessing(object):
         common_path, fs = self._tidy_fs(lines)
         return common_path, fs
 
+    def _run_callback(self, args):
+        # custom callback function
+        if self._callback_input_length == 0:
+            self.callback()
+        elif self._callback_input_length == 1:
+            self.callback(args)
+        else:
+            self.callback(*args)
+
+    def _callback_clean_paths(self, args):
+        # clean file path during callback
+        if not self._file_iterator_mode and not self._single_args_mode:
+            in_path, out_path = args
+            if not os.path.exists(out_path):
+                self._empty_file_counter += 1
+            if self._empty_file_counter / self._total_file_number < self._stop_each_file_cleaning_ratio:
+                self._simplify_path(self.fp_output, out_path)
+
+    def _process_mp_mt(self):
+        def _callback_function(args):
+            # update p_bar
+            p_bar.update()
+            self._run_callback(args)
+            self._callback_clean_paths(args)
+
+        self._update_paths_len()
+        with tqdm(total=len(self.fp_paths), dynamic_ncols=True) as p_bar:
+            if self.fp_cpu != 1:
+                if self.fp_multi_what == 'mp':
+                    executor_class = ProcessPoolExecutor
+                elif self.fp_multi_what == 'mt':
+                    executor_class = ThreadPoolExecutor
+                else:
+                    raise ValueError('ERROR: multi-what should be: multi-threading `mt`, or multi-processing `mp`!')
+                with executor_class(max_workers=self._cpu_count(self.fp_cpu)) as executor:
+                    for f in self.fp_paths:
+                        future = executor.submit(self._do_multi_mapping, f)
+                        future.add_done_callback(fn=lambda func: _callback_function(func.result()))
+            else:
+                for f in self.fp_paths:
+                    result = self._do_multi_mapping(f)
+                    _callback_function(result)
+
+    def _process_imp_imt(self):
+        def _callback_function(args):
+            self._run_callback(args)
+            self._callback_clean_paths(args)
+
+        if self.fp_cpu != 1:
+            if self.fp_multi_what == 'imp':
+                executor_class = ProcessPoolExecutor
+            elif self.fp_multi_what == 'imt':
+                executor_class = ThreadPoolExecutor
+            else:
+                raise ValueError('ERROR: multi-what iterator mode should be:'
+                                 'multi-threading `imt`, or multi-processing `imp`!')
+            with executor_class(max_workers=self._cpu_count(self.fp_cpu)) as executor:
+                futures = []
+                for filename in self._find_fs_iterator():
+                    future = executor.submit(self._do_multi_mapping, filename)
+                    future.add_done_callback(fn=lambda func: _callback_function(func.result()))
+                    futures.append(future)
+                concurrent.futures.wait(futures)
+        else:
+            for f in self.fp_paths:
+                result = self._do_multi_mapping(f)
+                _callback_function(result)
+
     def _do_once(self):
         """
         process once if:
@@ -394,13 +466,14 @@ class FileProcessing(object):
         --> output format == `out_format` (optional)
         """
         attributes = [self.fp_input]
-        if not self._single_mode:
+        if not self._single_args_mode:
             if self.fp_output.endswith(self.fp_out_format):
                 os.makedirs(os.path.dirname(self.fp_output), exist_ok=True)
                 attributes.append(self.fp_output)
             else:
                 raise AttributeError('ERROR: output format should match at single process!')
         self.do(*attributes)
+        return attributes
 
     def do(self, *args):
         """

@@ -59,7 +59,11 @@ if __name__ == '__main__':
     fp_group.add_argument('--out_format', '-of', type=str, help='the output format', default='yyy')
     fp_group.add_argument('--cpu_number', '-j', type=int, help='cpu number of processing', default=0)
     fp_group.add_argument('--multi_what', '-x', type=str,
-                          help='multi-threading: `mt`, or multi-processing: `mp` (default)',
+                          help='4 mode supported:'
+                               'a. multi-threading: `mt`,'
+                               'b. multi-processing: `mp` (default),'
+                               'c. iterator multi-threading: `imt`,'
+                               'd. iterator multi-processing: `imp`',
                           default=None)
 
     xx_group = parser.add_argument_group('xxx xxx arguments')

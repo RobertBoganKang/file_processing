@@ -49,7 +49,15 @@ If `output` or out_format is `None`, it is considered an `input` operation for t
 
 * `cpu_number`: the number of CPU to process;
 
-* `multi_what`: defines the method of processing: multi-processing with `mp`, or multi-threading with `mt`;
+* `multi_what`: defines the method of processing:
+  
+  * multi-processing with `mp`;
+  
+  * multi-threading with `mt`;
+  
+  * iterator multi-processing with `imp`;
+  
+  * iterator multi-threading with `imt`;
 
 ## Overwrite Function
 
