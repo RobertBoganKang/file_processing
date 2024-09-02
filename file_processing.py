@@ -450,6 +450,8 @@ class FileProcessing(object):
             with executor_class(max_workers=self._cpu_count(self.fp_cpu)) as executor:
                 futures = []
                 for filename in self._find_fs_iterator():
+                    # add counter if iterator mode
+                    self._total_file_number += 1
                     future = executor.submit(self._do_multi_mapping, filename)
                     future.add_done_callback(fn=lambda func: _callback_function(func.result()))
                     futures.append(future)
