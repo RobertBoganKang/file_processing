@@ -121,7 +121,7 @@ class FileProcessing(object):
         self._is_skip_pattern = self.fp_in_format.startswith(self._skip_pattern_identifier)
         # empty folder counter
         self._empty_file_counter = 0
-        self._total_file_number = None
+        self._total_file_number = 0
         self._stop_each_file_cleaning_ratio = 0.1
         # callback number of inputs
         self._callback_input_length = len(signature(self.callback).parameters)
