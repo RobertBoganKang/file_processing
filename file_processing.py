@@ -362,14 +362,14 @@ class FileProcessing(object):
     @staticmethod
     def _safe_division(x, y):
         if y == 0:
-            return x
+            return 1
         else:
             return x / y
 
     def _clean_output_folder(self):
         if not self._single_args_mode and (
                 self._safe_division(self._empty_file_counter,
-                                    self._total_file_number) >= self._stop_each_file_cleaning_ratio):
+                                    self._total_file_number) > self._stop_each_file_cleaning_ratio):
             self._remove_empty_folder(self.fp_output)
 
     def _tidy_fs(self, lines):
@@ -410,12 +410,12 @@ class FileProcessing(object):
 
     def _callback_clean_paths(self, args):
         # clean file path during callback
-        if not self._file_iterator_mode and not self._single_args_mode:
+        if not self._single_args_mode:
             in_path, out_path = args
             if not os.path.exists(out_path):
                 self._empty_file_counter += 1
             if self._safe_division(self._empty_file_counter,
-                                   self._total_file_number) < self._stop_each_file_cleaning_ratio:
+                                   self._total_file_number) > self._stop_each_file_cleaning_ratio:
                 self._simplify_path(self.fp_output, out_path)
 
     def _process_mp_mt(self):
