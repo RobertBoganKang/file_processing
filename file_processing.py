@@ -16,30 +16,26 @@ from tqdm import tqdm
 
 
 def timeout(seconds):
-    """
-    https://cloud.tencent.com/developer/article/1043966
-    :param seconds: int; time seconds
-    :return: wrapper function
-    """
     seconds = int(seconds)
 
     def decorated(func):
-
-        # noinspection PyUnusedLocal
-        def _handle_timeout(signum, frame):
-            print('<timeout error>')
-            raise TimeoutError()
-
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            def _handle_timeout(signum, frame):
+                print('<timeout error>')
+                raise TimeoutError()
+
+            original_handler = signal.getsignal(signal.SIGALRM)
             signal.signal(signal.SIGALRM, _handle_timeout)
             signal.alarm(seconds)
-            # noinspection PyBroadException
             try:
-                func(*args, **kwargs)
-            except Exception:
+                result = func(*args, **kwargs)
+                return result
+            finally:
                 signal.alarm(0)
+                signal.signal(signal.SIGALRM, original_handler)
 
-        return functools.wraps(func)(wrapper)
+        return wrapper
 
     return decorated
 
@@ -445,30 +441,33 @@ class FileProcessing(object):
 
     def _process_imp_imt(self):
         def _callback_function(args):
+            # update p_bar
+            p_bar.update()
             self._run_callback(args)
             self._callback_clean_paths(args)
 
-        if self.fp_cpu != 1:
-            if self.fp_multi_what == 'imp':
-                executor_class = ProcessPoolExecutor
-            elif self.fp_multi_what == 'imt':
-                executor_class = ThreadPoolExecutor
+        with tqdm(desc="Processing", dynamic_ncols=True) as p_bar:
+            if self.fp_cpu != 1:
+                if self.fp_multi_what == 'imp':
+                    executor_class = ProcessPoolExecutor
+                elif self.fp_multi_what == 'imt':
+                    executor_class = ThreadPoolExecutor
+                else:
+                    raise ValueError('ERROR: multi-what iterator mode should be:'
+                                     'multi-threading `imt`, or multi-processing `imp`!')
+                with executor_class(max_workers=self._cpu_count(self.fp_cpu)) as executor:
+                    futures = []
+                    for filename in self._find_fs_iterator():
+                        # add counter if iterator mode
+                        self._total_file_number += 1
+                        future = executor.submit(self._do_multi_mapping, filename)
+                        future.add_done_callback(fn=lambda func: _callback_function(func.result()))
+                        futures.append(future)
+                    concurrent.futures.wait(futures)
             else:
-                raise ValueError('ERROR: multi-what iterator mode should be:'
-                                 'multi-threading `imt`, or multi-processing `imp`!')
-            with executor_class(max_workers=self._cpu_count(self.fp_cpu)) as executor:
-                futures = []
-                for filename in self._find_fs_iterator():
-                    # add counter if iterator mode
-                    self._total_file_number += 1
-                    future = executor.submit(self._do_multi_mapping, filename)
-                    future.add_done_callback(fn=lambda func: _callback_function(func.result()))
-                    futures.append(future)
-                concurrent.futures.wait(futures)
-        else:
-            for f in self.fp_paths:
-                result = self._do_multi_mapping(f)
-                _callback_function(result)
+                for f in self._find_fs_iterator():
+                    result = self._do_multi_mapping(f)
+                    _callback_function(result)
 
     def _do_once(self):
         """
