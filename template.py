@@ -65,6 +65,8 @@ if __name__ == '__main__':
                                'c. iterator multi-threading: `imt`,'
                                'd. iterator multi-processing: `imp`',
                           default=None)
+    fp_group.add_argument('--logger_level', '-log', type=str,
+                          help='define the logger level, if `None`: no log file generated', default='info')
 
     xx_group = parser.add_argument_group('xxx xxx arguments')
 

@@ -59,6 +59,14 @@ If `output` or out_format is `None`, it is considered an `input` operation for t
   
   * iterator multi-threading with `imt`;
 
+* `logger_level`: defines the logging level when a log file is to be saved.
+  
+  * Valid values for `logger_level` are `debug`, `info`, `warning` and `error`;
+  
+  * If `logger_level` is not `None`, the `self.fp_logger` within the class can be used to perform logging;
+  
+  * The saved log files can be found in the `./log` folder;
+
 ## Overwrite Function
 
 ### Required

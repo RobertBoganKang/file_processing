@@ -7,6 +7,7 @@ import pathlib
 import re
 import shutil
 import signal
+import time
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from copy import copy
 from inspect import signature
@@ -40,6 +41,32 @@ def timeout(seconds):
     return decorated
 
 
+def initialize_logger(logger_level='info'):
+    import logging
+    from concurrent_log_handler import ConcurrentRotatingFileHandler
+    logger = logging.getLogger()
+    logger_folder = 'log'
+    os.makedirs(logger_folder, exist_ok=True)
+    log_path = os.path.join(logger_folder,
+                            time.strftime(f'log_%Y%m%d%H%M%S', time.localtime(time.time())) + '.log')
+    logfile = os.path.abspath(log_path)
+    formatter = logging.Formatter('%(asctime)s|%(levelname)s|%(filename)s[%(lineno)d]|%(message)s')
+    rfh = ConcurrentRotatingFileHandler(logfile, 'a', 1024 * 1024, 5)
+    rfh.setFormatter(formatter)
+    logger.addHandler(rfh)
+    if logger_level.lower() == 'info':
+        logger.setLevel(logging.INFO)
+    elif logger_level.lower() == 'warning':
+        logger.setLevel(logging.WARNING)
+    elif logger_level.lower() == 'error':
+        logger.setLevel(logging.ERROR)
+    elif logger_level.lower() == 'debug':
+        logger.setLevel(logging.DEBUG)
+    else:
+        raise ValueError('ERROR: `logger_level` parameter ERROR.')
+    return logger
+
+
 class FileProcessing(object):
     """
     recursively find file of processing
@@ -53,7 +80,11 @@ class FileProcessing(object):
         self.fp_out_format = self._set_parser_value(ops, 'out_format', None)
         self.fp_cpu = self._set_parser_value(ops, 'cpu_number', 1)
         self.fp_multi_what = self._set_parser_value(ops, 'multi_what', 'mp')
+        self.fp_logger_level = self._set_parser_value(ops, 'logger_level', None)
         self.fp_paths = []
+
+        if self.fp_logger_level is not None:
+            self.fp_logger = initialize_logger(self.fp_logger_level)
 
         # initialize parameter
         self._initialize_parameters()
